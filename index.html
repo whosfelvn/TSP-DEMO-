@@ -1,0 +1,994 @@
+<!doctype html><html lang="en-GB"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>OR Transition Support Pack (demo)</title>
+<meta name="description" content="Transition Support Pack phone demo with sample data.">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#4A2A7A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TSP Demo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700;800&family=Red+Hat+Mono:wght@500;600&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet"><style id="tsp-style">
+/* Layout: ops handbook app. Sticky header + left rail (desktop) / scrolling tab strip (phone); wayfinding-sign yellow reserved for location tags and signage. */
+:root{
+  --bg:#F5F3F8;--surface:#FFFFFF;--surface-2:#EEEAF3;--fg:#1D1626;--muted:#61586E;--line:#DCD5E4;
+  --accent:#4A2A7A;--accent-ink:#FFFFFF;--plum:#8A1F5D;--sign:#F2B21C;--sign-ink:#17120B;--signdark:#2B2533;
+  --ok:#2E7A4D;--warn:#B57514;--crit:#B3261E;--ok-bg:#E3F1E8;--warn-bg:#FBEFD9;--crit-bg:#F9E1DF;
+  --shadow:0 1px 2px rgba(30,20,45,.06),0 6px 18px rgba(30,20,45,.06);
+  --f-display:"Red Hat Display",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-body:"Red Hat Text",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Red Hat Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#130F18;--surface:#1C1723;--surface-2:#262030;--fg:#EEE8F5;--muted:#A69CB3;--line:#372E42;
+  --accent:#BCA4EC;--accent-ink:#150E20;--plum:#E07AB2;--sign:#F2B21C;--sign-ink:#17120B;--signdark:#0E0B12;
+  --ok:#62C68E;--warn:#E8AE4F;--crit:#F27A70;--ok-bg:#16301F;--warn-bg:#33270F;--crit-bg:#3A1714;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#130F18;--surface:#1C1723;--surface-2:#262030;--fg:#EEE8F5;--muted:#A69CB3;--line:#372E42;
+  --accent:#BCA4EC;--accent-ink:#150E20;--plum:#E07AB2;--sign:#F2B21C;--sign-ink:#17120B;--signdark:#0E0B12;
+  --ok:#62C68E;--warn:#E8AE4F;--crit:#F27A70;--ok-bg:#16301F;--warn-bg:#33270F;--crit-bg:#3A1714;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+h1,h2,h3,h4{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.2}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.badge-t4{font-family:var(--f-display);font-weight:800;font-size:10.5px;line-height:1.05;letter-spacing:.04em;text-transform:uppercase;background:linear-gradient(135deg,var(--accent),var(--plum));color:#fff;padding:7px 8px;border-radius:6px;flex:none}
+:root[data-theme="dark"] .badge-t4{color:#160e20}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .badge-t4{color:#160e20}}
+.top-title{min-width:0;flex:1}
+.top-title h1{font-size:17px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-title .sub{font-size:12.5px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ref{font-family:var(--f-mono);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line);padding:1px 6px;border-radius:4px;color:var(--fg)}
+.ref.empty{color:var(--muted);border-style:dashed}
+.top-actions{display:flex;gap:8px;align-items:center;flex:none}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);padding:7px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13.5px;white-space:nowrap;text-decoration:none;color:var(--fg)}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.danger{color:var(--crit);border-color:color-mix(in srgb,var(--crit) 40%,var(--line))}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn.on{background:var(--sign);color:var(--sign-ink);border-color:var(--sign)}
+.btn[disabled]{opacity:.5;cursor:default}
+.status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.ok{background:var(--ok)}.dot.warn{background:var(--warn)}.dot.crit{background:var(--crit)}
+@media (max-width:640px){
+  .top-in{padding-block:8px;gap:10px}
+  .top-title h1{font-size:16.5px}
+  .top-title .sub .ref.empty{display:none}
+  .top-title .sub .ref:not(.empty)~.prog{display:none}
+  .badge-t4{font-size:9.5px;padding:6px 7px}
+}
+
+/* shell */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);gap:0;min-height:calc(100vh - 60px)}
+.rail{border-right:1px solid var(--line);padding:14px 10px;position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--toph,61px));align-self:start;height:calc(100vh - var(--toph,61px));overflow:auto}
+.rail a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;text-decoration:none;color:var(--fg);font-weight:500;font-size:14.5px}
+.rail a:hover{background:var(--surface-2)}
+.rail a[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+.rail .count{margin-left:auto;font-family:var(--f-mono);font-size:11.5px;opacity:.75}
+main{min-width:0;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.tabbar,.savebar{display:none}
+.savebar[hidden]{display:none!important}
+@media (max-width:900px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .rail{display:none}
+  main{padding-block:16px calc(140px + env(safe-area-inset-bottom,0px))}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding:4px max(4px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(4px,env(safe-area-inset-left,0px))}
+  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px;padding:6px 2px;border:0;background:none;text-decoration:none;color:var(--muted);font-size:11.5px;font-weight:600;border-radius:10px;cursor:pointer}
+  .tabbar .ico{width:23px;height:23px}
+  .tabbar [aria-current="page"]{color:var(--accent)}
+  .tabbar [aria-current="page"] .ico{stroke-width:2.4}
+  .savebar{display:flex;position:fixed;left:0;right:0;bottom:calc(63px + env(safe-area-inset-bottom,0px));z-index:24;gap:10px;align-items:center;padding:8px max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px));background:var(--warn-bg);border-top:1px solid color-mix(in srgb,var(--warn) 40%,transparent);font-weight:600;font-size:14.5px}
+  .savebar .btn{padding:10px 16px;font-size:15px}
+  .top-actions .btn.primary,.top-actions .status{display:none}
+  .toast{bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+}
+.sheet-bg{position:fixed;inset:0;z-index:40;background:rgba(15,10,20,.5)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:41;background:var(--surface);border-radius:18px 18px 0 0;box-shadow:var(--shadow);padding:6px max(12px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));max-height:85vh;overflow:auto}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:6px auto 8px}
+.sheet a{display:flex;align-items:center;gap:14px;padding:14px 10px;border-radius:10px;text-decoration:none;color:var(--fg);font-weight:600;font-size:16px}
+.sheet a .ico{width:22px;height:22px;color:var(--accent)}
+.sheet a[aria-current="page"]{background:var(--surface-2)}
+.sheet a .count{margin-left:auto;font-family:var(--f-mono);font-size:12.5px;color:var(--muted)}
+
+/* page heads & sections */
+.phead{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.phead h2{font-size:26px;font-weight:800;letter-spacing:-.01em}
+.phead p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.sec{display:flex;flex-direction:column;gap:12px}
+.sec>h3{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.spacer{flex:1}
+.edit-only{display:none!important}
+.editing .edit-only{display:inline-flex!important}
+.editing .edit-only.blk{display:block!important}
+.empty-note{color:var(--muted);font-size:14px;padding:12px;border:1px dashed var(--line);border-radius:10px;text-align:center}
+
+/* location tag = wayfinding sign */
+.loc{display:inline-flex;align-items:center;gap:5px;background:var(--sign);color:var(--sign-ink);font-weight:600;font-size:11.5px;padding:2px 7px;border-radius:3px;white-space:nowrap}
+.loc.dark{background:var(--signdark);color:#fff}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap}
+.pill.on{background:var(--ok-bg);border-color:color-mix(in srgb,var(--ok) 35%,transparent);color:var(--ok)}
+.team{font-family:var(--f-mono);font-size:10.5px;font-weight:600;padding:1px 5px;border-radius:3px;letter-spacing:.03em}
+.team.BC{background:color-mix(in srgb,var(--plum) 18%,transparent);color:var(--plum)}
+.team.Ops{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
+.team.OR{background:color-mix(in srgb,var(--warn) 22%,transparent);color:var(--warn)}
+.team.Other{background:var(--surface-2);color:var(--muted)}
+
+/* overview */
+.hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px}
+@media (max-width:760px){.hero{grid-template-columns:minmax(0,1fr)}}
+.proj{background:linear-gradient(150deg,var(--accent),var(--plum));color:#fff;border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;position:relative;overflow:hidden}
+:root[data-theme="dark"] .proj{color:#160e20}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .proj{color:#160e20}}
+.proj::after{content:"";position:absolute;right:-40px;top:-30px;width:180px;height:180px;background:repeating-linear-gradient(135deg,rgba(255,255,255,.10) 0 18px,transparent 18px 36px);transform:rotate(8deg);pointer-events:none}
+.proj .eyebrow{color:inherit;opacity:.8}
+.proj h2{font-size:28px;font-weight:800;line-height:1.1}
+.proj dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px 16px;margin:0}
+.proj dt{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.75}
+.proj dd{margin:2px 0 0;font-weight:600;font-family:var(--f-mono);font-size:13.5px;word-break:break-word}
+.proj dd.unset{opacity:.65;font-style:italic;font-family:var(--f-body);font-weight:500}
+.proj .btn{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.35);color:inherit}
+.live{display:flex;flex-direction:column;gap:4px}
+.live .big{font-family:var(--f-display);font-weight:800;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.qd{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);text-decoration:none;color:var(--fg)}
+.qd:hover{border-color:var(--accent)}
+.qd .r{font-size:13px;font-weight:600;line-height:1.3}
+.qd .n{font-family:var(--f-mono);font-size:14px;color:var(--accent);font-weight:600}
+.notice{display:grid;grid-template-columns:4px minmax(0,1fr) auto;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px 12px 0;overflow:hidden}
+.notice .bar{background:var(--muted);border-radius:0 3px 3px 0}
+.notice.info .bar{background:var(--accent)}.notice.advisory .bar{background:var(--warn)}.notice.critical .bar{background:var(--crit)}
+.notice h4{font-size:15px;font-weight:700;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.notice p{margin:4px 0 0;white-space:pre-line}
+.lvl{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:3px;font-weight:600}
+.lvl.info{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent)}
+.lvl.advisory{background:var(--warn-bg);color:var(--warn)}
+.lvl.critical{background:var(--crit-bg);color:var(--crit)}
+.todo{display:flex;flex-direction:column;gap:2px}
+.todo label{display:flex;gap:10px;align-items:flex-start;padding:7px 4px;border-radius:6px;cursor:pointer}
+.todo label:hover{background:var(--surface-2)}
+.todo input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px}
+.todo .done{text-decoration:line-through;color:var(--muted)}
+details.about summary{cursor:pointer;font-weight:600}
+details.about p{max-width:68ch;margin:10px 0 0}
+
+/* contacts */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0 12px}
+.search input{border:0;background:transparent;padding:10px 0;width:100%;outline:none;font-size:15px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);padding:5px 11px;border-radius:999px;font-size:13px;cursor:pointer;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip .c{font-family:var(--f-mono);font-size:11px;opacity:.7;margin-left:4px}
+.cgroup{display:flex;flex-direction:column;gap:8px}
+.cgroup>h3{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);display:flex;gap:8px;align-items:center;padding-top:6px}
+.ct{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;align-items:center}
+.ct-name{font-weight:700;font-size:15px;line-height:1.3}
+.ct-role{font-size:13.5px;color:var(--muted);line-height:1.35}
+.ct-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ct-esc{font-size:13px;color:var(--muted);margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.ct-esc a{font-family:var(--f-mono);font-weight:600;text-decoration:none}
+.dialbox{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+.dial{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font-family:var(--f-mono);font-weight:600;font-size:14.5px;padding:8px 12px;border-radius:9px;white-space:nowrap}
+.dial:hover{filter:brightness(1.08)}
+.nophone{font-size:12.5px;color:var(--muted);font-style:italic}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;color:var(--fg);flex:none}
+.iconbtn:hover{background:var(--surface-2)}
+@media (max-width:560px){.ct{grid-template-columns:minmax(0,1fr)}.dialbox{justify-content:flex-start}}
+
+/* who's on */
+.areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.area{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.area-h{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.area-h .t{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.area-h h3{font-size:15.5px;font-weight:700}
+.area-h .s{font-size:12.5px;color:var(--muted)}
+.ppl{display:flex;flex-direction:column}
+.p{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:9px 14px;border-bottom:1px solid var(--line);align-items:center}
+.p:last-child{border-bottom:0}
+.p .nm{font-weight:600;font-size:14.5px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.p .dt{font-size:12.5px;color:var(--muted)}
+.p a.num{font-family:var(--f-mono);font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap}
+.timebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.timebar input[type=time],.timebar select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px}
+.clock{font-family:var(--f-display);font-weight:800;font-size:30px;font-variant-numeric:tabular-nums;line-height:1}
+
+/* roster */
+.daytabs{display:flex;gap:6px;flex-wrap:wrap}
+.daytab{border:1px solid var(--line);background:var(--surface);padding:8px 12px;border-radius:10px;cursor:pointer;text-align:left;display:flex;flex-direction:column;line-height:1.25}
+.daytab b{font-family:var(--f-display);font-size:15px}
+.daytab span{font-size:12px;color:var(--muted)}
+.daytab[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.scroll-x{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table.rg{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
+.rg th,.rg td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+.rg tr>*:last-child{border-right:0}
+.rg tbody tr:last-child>*{border-bottom:0}
+.rg thead th{background:var(--surface-2);font-size:12px;font-weight:600}
+.rg thead th .mono{font-size:13px;display:block;color:var(--fg)}
+.rg tbody th{width:200px;font-size:13.5px;background:var(--surface-2)}
+.rg tbody th small{display:block;font-weight:400;color:var(--muted);font-size:12px;margin-top:2px}
+.rc{display:flex;flex-direction:column;gap:6px}
+.rp{display:flex;flex-direction:column;gap:1px;padding:5px 7px;border-radius:7px;background:var(--surface-2);font-size:13.5px;cursor:default;text-align:left;border:1px solid transparent}
+.editing .rp{cursor:pointer;border-color:var(--line)}
+.rp .top-l{display:flex;gap:6px;align-items:center;font-weight:600}
+.rp .nt{font-size:12px;color:var(--muted)}
+.rp a{font-family:var(--f-mono);font-size:12px;text-decoration:none}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);align-items:center}
+
+/* dates */
+.tl{display:flex;flex-direction:column;gap:10px}
+.ev{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;align-items:start}
+.ev.past{opacity:.72}
+.ev.today{border-color:var(--sign);box-shadow:inset 4px 0 0 var(--sign)}
+.ev .d{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;background:var(--surface-2);padding:6px 0;line-height:1.05}
+.ev .d b{font-family:var(--f-display);font-size:24px;font-weight:800}
+.ev .d span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.ev h4{font-size:15.5px;font-weight:700}
+.ev .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;font-size:13px;color:var(--muted);align-items:center}
+.ev .att{font-size:13px;margin-top:6px}
+.type{font-family:var(--f-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;padding:1px 6px;border-radius:3px;font-weight:600;background:var(--surface-2);border:1px solid var(--line)}
+.type.Milestone{background:var(--sign);color:var(--sign-ink);border-color:var(--sign)}
+
+/* journeys */
+.jcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.jc{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.jc-h{background:linear-gradient(120deg,var(--accent),var(--plum));color:#fff;padding:10px 14px;font-family:var(--f-display);font-weight:700;font-size:15px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+:root[data-theme="dark"] .jc-h{color:#160e20}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .jc-h{color:#160e20}}
+.jc-h .iconbtn{width:28px;height:28px;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:inherit}
+.jc-b{padding:12px 14px;display:flex;flex-direction:column;gap:8px;font-size:14.5px}
+.jc-b p{margin:0}
+.jc-b ul,.jc-b ol{margin:0;padding-left:20px}
+.hl{display:flex;gap:8px;align-items:center;background:var(--sign);color:var(--sign-ink);font-weight:600;padding:6px 10px;border-radius:6px;font-size:13.5px}
+.charges{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+.chg{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:2px}
+.chg b{font-family:var(--f-display);font-size:20px;font-weight:800;color:var(--accent)}
+.chg span{font-size:12px;color:var(--muted);line-height:1.3}
+.signs{display:flex;flex-direction:column;border-radius:6px;overflow:hidden;max-width:360px;background:var(--signdark)}
+.sg{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:center;padding:8px 12px;font-weight:700;font-size:14.5px;border-bottom:1px solid rgba(0,0,0,.25)}
+.sg .a{font-size:19px;line-height:1}
+.sg small{display:block;font-weight:500;font-size:11.5px;opacity:.85}
+.sg.yellow{background:#F2B21C;color:#17120B}
+.sg.dark{background:#3B3540;color:#fff}
+.sg.violet{background:#45307A;color:#fff}
+.sg.plum{background:#7A1F55;color:#fff}
+.vms{background:#121014;color:#E8B04A;font-family:var(--f-mono);font-weight:600;letter-spacing:.12em;text-align:center;padding:14px;border-radius:6px;white-space:pre-line;line-height:1.35;max-width:260px;text-shadow:0 0 6px rgba(232,176,74,.45)}
+
+/* data */
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+.chart .vl{fill:var(--fg);font-size:10px}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .peak{fill:var(--fg);font-weight:600}
+.stats{display:flex;gap:18px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column}
+.stat b{font-family:var(--f-display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.keyrow{display:flex;gap:12px;font-size:12.5px;color:var(--muted);flex-wrap:wrap;align-items:center}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+table.sa{border-collapse:separate;border-spacing:0;min-width:1100px;width:100%;font-size:13px}
+.sa th,.sa td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.sa th:first-child,.sa td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);white-space:normal;min-width:210px;max-width:250px;border-right:1px solid var(--line);z-index:1}
+.sa thead th{background:var(--surface-2);font-weight:600;font-size:12px}
+.sa thead th:first-child{background:var(--surface-2)}
+.sa td.v{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.verify{font-size:10.5px;font-family:var(--f-mono);background:var(--warn-bg);color:var(--warn);padding:1px 5px;border-radius:3px;font-weight:600;white-space:nowrap}
+.tiles{display:flex;gap:12px;flex-wrap:wrap}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:flex;flex-direction:column;gap:2px;min-width:180px}
+.tile b{font-family:var(--f-display);font-size:28px;font-weight:800;font-variant-numeric:tabular-nums}
+.tile span{font-size:12.5px;color:var(--muted)}
+
+/* images */
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:8px;align-items:center;background:var(--surface)}
+.drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.imgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.im{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.im button.th{border:0;padding:0;background:var(--surface-2);cursor:zoom-in;aspect-ratio:16/10;display:block;width:100%;max-width:100%}
+.im button.th img{width:100%;height:100%;object-fit:contain;display:block}
+.im .b{padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.im h4{font-size:14.5px;font-weight:700}
+.im p{margin:0;font-size:13px;color:var(--muted)}
+.im .acts{display:flex;gap:6px;flex-wrap:wrap}
+.lb{position:fixed;inset:0;z-index:60;background:#0C0910;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.lb-bar{display:flex;gap:8px;align-items:center;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));color:#fff}
+.lb-bar h4{flex:1;font-size:15px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-bar .iconbtn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.25);color:#fff}
+.lb-view{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center}
+.lb-view img{display:block;max-width:none;margin:auto}
+
+/* partners */
+.pt{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.pt h3{font-size:18px;font-weight:800;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.pt .lnk{display:flex;gap:8px;align-items:center;font-size:13.5px;word-break:break-all}
+.pt .lnk.missing{color:var(--warn)}
+.pt ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.pt li{display:flex;justify-content:space-between;gap:10px;font-size:13px;align-items:center}
+.pt li a{font-family:var(--f-mono);font-weight:600;text-decoration:none;white-space:nowrap}
+
+/* modal & toast */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(15,10,20,.55);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:max(24px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.modal form{background:var(--surface);border:1px solid var(--line);border-radius:14px;width:100%;max-width:560px;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.modal header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.modal header h3{font-size:17px;font-weight:800}
+.modal .fields{padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld>label,.fld>.lab{font-size:12.5px;font-weight:600;color:var(--muted)}
+.fld input[type=text],.fld input[type=tel],.fld input[type=url],.fld input[type=date],.fld input[type=time],.fld input[type=number],.fld select,.fld textarea{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px 10px;width:100%}
+.fld textarea{min-height:90px;resize:vertical;font-family:var(--f-body)}
+.fld textarea.code{font-family:var(--f-mono);font-size:12.5px;min-height:180px}
+.fld .hint{font-size:12px;color:var(--muted)}
+.fld.check{flex-direction:row;align-items:center;gap:8px}
+.multi{display:flex;flex-direction:column;gap:4px}
+.multi label{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);font-weight:500}
+.modal footer{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:70;background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:var(--shadow);max-width:min(92vw,520px)}
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--warn-bg);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);color:var(--fg);padding:10px 14px;border-radius:10px;font-size:14px}
+@media (prefers-reduced-motion:no-preference){.ct,.area,.ev,.jc,.im{transition:border-color .15s}}
+
+/* ---- demo numbers ---- */
+.demo-num{font-family:var(--f-mono);font-weight:600;color:var(--muted);white-space:nowrap}
+.dial.off{background:var(--surface-2);color:var(--muted);cursor:default}
+.dial.off:hover{filter:none}
+/* ---- project info ---- */
+.pinfo{display:flex;flex-direction:column}
+.pi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.pi:first-child{border-top:0;padding-top:0}
+.pi b{font-size:15px}
+.pi p{margin:2px 0 0;white-space:pre-line}
+/* ---- about card ---- */
+.about-card{display:flex;flex-direction:column;gap:8px}
+.about-card .lead{margin:0;font-size:15.5px;max-width:70ch}
+.about-card details summary{cursor:pointer;font-weight:600;color:var(--accent);list-style:none;display:inline-flex;align-items:center;gap:6px;font-size:14px}
+.about-card details summary::-webkit-details-marker{display:none}
+.about-card details summary::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .2s ease}
+.about-card details[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.about-card details[open] summary .rm{display:none}
+.about-card details:not([open]) summary .rl{display:none}
+.about-card .more p{margin:8px 0 0;max-width:70ch}
+/* ---- motion & touch ---- */
+*{-webkit-tap-highlight-color:transparent}
+.top{transition:box-shadow .2s ease}
+.top.scrolled{box-shadow:0 4px 16px rgba(30,20,45,.08)}
+@media (prefers-reduced-motion:no-preference){
+  .wrap.enter{animation:tspRise .3s cubic-bezier(.2,.7,.2,1)}
+  .sheet{animation:tspUp .3s cubic-bezier(.2,.8,.2,1)}
+  .sheet.closing{animation:tspDown .2s ease forwards}
+  .sheet-bg,.modal,.lb{animation:tspFade .2s ease}
+  .sheet-bg.closing,.modal.closing,.lb.closing{animation:tspFadeOut .18s ease forwards}
+  .modal form{animation:tspPop .26s cubic-bezier(.2,.8,.2,1)}
+  .modal.closing form{animation:tspPopOut .18s ease forwards}
+  .toast{animation:tspToast .25s cubic-bezier(.2,.8,.2,1)}
+  .btn,.chip,.iconbtn,.dial,.qd,.tabbar a,.tabbar button,.daytab,.rp,.sheet a,.im button.th,.setup{transition:transform .12s ease,background-color .15s ease,border-color .15s ease,color .15s ease,filter .15s ease}
+  .btn:active,.chip:active,.iconbtn:active,.dial:active,.qd:active,.daytab:active,.sheet a:active,.setup:active{transform:scale(.96)}
+  .im button.th:active{transform:scale(.985)}
+  .tabbar a:active,.tabbar button:active{transform:scale(.9)}
+  .tabbar [aria-current="page"] .ico{animation:tspBump .32s ease}
+  .about-card .more{animation:tspFade .25s ease}
+  .pill.on .dot{animation:tspPulse 2s ease-in-out infinite}
+}
+@media (prefers-reduced-motion:no-preference) and (max-width:640px){
+  .modal form{animation:tspUp .3s cubic-bezier(.2,.8,.2,1)}
+  .modal.closing form{animation:tspDown .2s ease forwards}
+}
+@keyframes tspRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes tspUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes tspDown{from{transform:none}to{transform:translateY(100%)}}
+@keyframes tspFade{from{opacity:0}to{opacity:1}}
+@keyframes tspFadeOut{from{opacity:1}to{opacity:0}}
+@keyframes tspPop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes tspPopOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(8px) scale(.98)}}
+@keyframes tspToast{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+@keyframes tspBump{50%{transform:translateY(-2px) scale(1.1)}}
+@keyframes tspPulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ---- phone-first additions ---- */
+.ct-num{display:none}
+.proj .setup{display:flex;gap:8px;align-items:center;border:1px dashed rgba(255,255,255,.5);border-radius:10px;padding:10px 12px;background:rgba(255,255,255,.08);color:inherit;cursor:pointer;font-weight:600;text-align:left}
+.rlist,.sa-m{display:none}
+.rl-area{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rl-area>h3{font-size:15.5px;font-weight:700;padding:12px 14px 2px}
+.rl-area>.s{font-size:13px;color:var(--muted);padding:0 14px 10px;border-bottom:1px solid var(--line)}
+.rl-shift{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.rl-shift:last-child{border-bottom:0}
+.rl-shift .tm{font-family:var(--f-mono);font-weight:600;font-size:13.5px;padding-top:4px;white-space:pre-line;line-height:1.3}
+.ct-num .iconbtn{width:34px!important;height:34px!important}
+.rl-shift .rc{gap:6px}
+.shared{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.sa-m .mrow{display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:4px 10px;padding:9px 0;border-bottom:1px solid var(--line);align-items:center}
+.sa-m .mrow:last-child{border-bottom:0}
+.sa-m .mn{font-size:14px;line-height:1.3}
+.sa-m .mv{font-family:var(--f-mono);font-weight:600;text-align:right;font-size:14px}
+.sa-m .mb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.sa-m .mb i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.lb-view{flex:1;overflow:auto;display:block;touch-action:none;cursor:grab}
+.lb-view img{margin:0 auto;user-select:none;-webkit-user-drag:none}
+.lb-hint{color:rgba(255,255,255,.7);font-size:12.5px;text-align:center;padding:6px 16px 10px}
+@media (max-width:900px){
+  .hero{display:contents}
+  .ov-proj{order:0}.ov-info{order:1}.ov-about{order:2}.ov-notices{order:3}.ov-quick{order:4}.ov-dates{order:5}.ov-more{order:6}
+  .cbar{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--toph,57px));z-index:12;background:var(--bg);padding-block:8px;margin-block:-8px;display:flex;flex-direction:column;gap:8px}
+  .chips.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+  .chips.scroll::-webkit-scrollbar{display:none}
+  .chips.scroll .chip{flex:none}
+  .rg-wrap{display:none}
+  .rlist{display:flex;flex-direction:column;gap:12px}
+  .sa-wrap{display:none}
+  .sa-m{display:block}
+}
+@media (max-width:640px){
+  body{font-size:16px}
+  .fld input,.fld select,.fld textarea,.search input,.timebar input,.timebar select,.sa-m select{font-size:16px}
+  .phead h2{font-size:23px}
+  .phead p{font-size:14.5px}
+  .wrap{gap:18px}
+  .ct-role,.ct-esc,.p .dt,.area-h .s,.ev .meta,.ev .att,.im p,.pt li,.legend,.keyrow{font-size:14px}
+  .muted[style*="font-size:12"]{font-size:13.5px!important}
+  /* contacts: compact rows with a big call button */
+  .ct{grid-template-columns:minmax(0,1fr) auto;padding:12px;gap:4px 12px;align-items:start}
+  .ct-name{font-size:16px}
+  .ct-num{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .ct-num a{font-family:var(--f-mono);font-weight:600;font-size:16px;color:var(--fg);text-decoration:none}
+  .ct-meta{margin-top:5px}
+  .dialbox{flex-direction:column;justify-content:flex-start;gap:6px}
+  .dial{width:52px;height:52px;padding:0;justify-content:center;border-radius:50%}
+  .dial .dn{display:none}
+  .dial .ico{width:24px;height:24px}
+  .dialbox>.iconbtn[data-act="copy"]{display:none}
+  /* overview */
+  .proj{padding:16px;gap:12px}
+  .proj h2{font-size:22px}
+  .live .big{font-size:34px}
+  .quick{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .qd{padding:12px;min-height:84px}
+  .qd .r{font-size:14px}
+  .qd .n{font-size:15px}
+  /* who's on */
+  .timebar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+  .timebar .tb-clock{grid-column:1/-1}
+  .timebar .tb-day{grid-column:1/-1;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  .timebar .tb-time{display:flex;flex-direction:column;align-items:stretch;gap:4px}
+  .timebar .tb-day select,.timebar .tb-time input{width:100%;padding:10px}
+  .timebar [data-act="wnow"]{align-self:end;padding:11px 16px}
+  .p{padding:11px 14px}
+  .p a.num{font-size:15px;padding:6px 0}
+  /* dates */
+  .ev{grid-template-columns:54px minmax(0,1fr) auto;gap:12px;padding:12px}
+  .ev .d b{font-size:21px}
+  /* forms as bottom sheets */
+  .modal{padding:0;align-items:flex-end}
+  .modal form{max-width:none;border-radius:18px 18px 0 0;max-height:94vh;overflow:auto}
+  .modal header{position:sticky;top:0;background:var(--surface);z-index:1}
+  .modal footer{position:sticky;bottom:0;background:var(--surface);padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+  .modal footer .btn{padding:11px 16px;font-size:15px}
+  .iconbtn{width:40px;height:40px}
+  .chip{padding:8px 13px;font-size:14px}
+  .daytab{padding:10px 12px}
+}
+</style><div id="app"></div><script type="application/json" id="tsp-data">{"savedAt":0,"project":{"name":"Demo project","ref":"DEMO-001","pack":"Operational Readiness Transition Support Pack","programme":"Terminal front door & car park","goLive":"2026-06-23","owner":"JT","version":"Demo v0.2","classification":"Demo · sample data","videoUrl":"","intro":"This pack supports frontline teams through the closure of a terminal multi-storey car park (MSCP4) and the switch to new pick-up and drop-off arrangements.\nIt brings together who to call, who is on shift where, the go-live meeting schedule, passenger journey changes, forecasts and maps in one place you can use on your phone.\nThis demo uses fictional people and sample figures so it can be shared for feedback.","feedbackUrl":""},"notices":[{"level":"advisory","title":"Demo with sample data","body":"Everything here is fictional: names, rosters and figures. Every phone number is 07700 900111, an Ofcom-reserved number that doesn’t connect to anyone, so Call and Copy are safe to try. Tap Feedback at the top of any page to leave a comment.","date":"2026-10-28","pinned":true},{"level":"critical","title":"MSCP4 closed","body":"The Terminal 4 multi-storey car park (MSCP4) closed from 23 June 2026. Arriving passengers use Priority Pick-Up, Park & Ride 4 or public transport.","date":"2026-06-23","pinned":true}],"todo":[{"text":"Find who covers Park & Ride 4 at 14:00 on Day 1 (Who's on tab)","done":false},{"text":"Search Contacts for “BusCo” and tap the call button","done":false},{"text":"Add a terminal notice from the Home screen","done":false},{"text":"Open a map and pinch to zoom","done":false},{"text":"Switch on Edit and add yourself to the roster","done":false},{"text":"Tap Feedback at the top and tell us one thing to change","done":false}],"areas":[{"key":"arr","label":"Arrivals Hall & Forecourt Lane 1","sub":"Landside arrivals hall · Lane 1 bus stops 2, 5, 6 & 7"},{"key":"ppu","label":"Priority Pick-Up & Departures","sub":"Ground floor MSCP4 site"},{"key":"pr4","label":"Park & Ride 4","sub":"Zones A–D · bus stop 3 shuttle"},{"key":"all","label":"All areas / floating","sub":"OR leads and floating cover"},{"key":"lead","label":"Project leadership","sub":"Project leadership on the day"}],"contacts":[{"group":"Project leadership","area":"lead","dept":"Development","role":"MSCP4 Project Lead","shift":"18:00-06:00","name":"Jordan Hale","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Development","role":"MSCP4 Project Manager","shift":"18:00-06:00","name":"Sam Okafor","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Development","role":"MSCP4 Project Manager","shift":"06:00-18:00","name":"Chris Doyle","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Stakeholder Engagement","role":"Stakeholder Engagement","shift":"13:00-21:00","name":"Priya","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Business Change","role":"Communications Manager","shift":"05:30-13:30","name":"Ruth Barnes","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Business Change","role":"Business Change Manager","shift":"","name":"Toby Lane","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Business Change","role":"Business Change Manager","shift":"","name":"Nina Shah","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Surface Access","role":"Senior Business Development Manager","shift":"06:30-11:30","name":"Omar Reid","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Operational Readiness","role":"OR Project Lead","shift":"","name":"Dan Pryce","phone":"07700900111","escName":"","escPhone":""},{"group":"Project leadership","area":"lead","dept":"Operational Readiness","role":"OR Project Lead","shift":"","name":"Leah Cole","phone":"07700900111","escName":"","escPhone":""},{"group":"Priority Pick-Up","area":"ppu","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"04:00-14:00","name":"Ben Carter","phone":"07700900111","escName":"Leah Cole","escPhone":"07700900111"},{"group":"Priority Pick-Up","area":"ppu","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"13:00-22:00","name":"Holly Grant","phone":"07700900111","escName":"Ravi Mann","escPhone":"07700900111"},{"group":"Priority Pick-Up","area":"ppu","dept":"Readiness Consulting","role":"R&C Support","shift":"07:00-20:00","name":"Fiona West","phone":"07700900111","escName":"Iain Ross","escPhone":"07700900111"},{"group":"Priority Pick-Up","area":"ppu","dept":"ParkCo","role":"CTA Service Delivery Manager","shift":"","name":"","phone":"07700900111","escName":"","escPhone":""},{"group":"Priority Pick-Up","area":"ppu","dept":"ParkCo","role":"Service Delivery Manager","shift":"","name":"","phone":"07700900111","escName":"","escPhone":""},{"group":"Park & Ride 4","area":"pr4","dept":"AssistCo","role":"AssistCo Allocator (T4)","shift":"","name":"","phone":"07700900111","escName":"Provider escalation desk","escPhone":"07700900111"},{"group":"Park & Ride 4","area":"pr4","dept":"AssistCo","role":"AssistCo PRM Park & Ride Lead Agent","shift":"04:30-23:00","name":"","phone":"07700900111","escName":"Provider escalation desk","escPhone":"07700900111"},{"group":"Park & Ride 4","area":"pr4","dept":"AssistCo","role":"AssistCo PRM T4 Service Delivery Manager","shift":"04:30-23:00","name":"","phone":"","escName":"Provider escalation desk","escPhone":"07700900111"},{"group":"Park & Ride 4","area":"pr4","dept":"Business Change","role":"Business Change Manager","shift":"05:30-13:30","name":"Nina Shah","phone":"07700900111","escName":"","escPhone":""},{"group":"Park & Ride 4","area":"pr4","dept":"Business Change","role":"Business Change Manager","shift":"13:00-21:00","name":"George Hart","phone":"07700900111","escName":"","escPhone":""},{"group":"Park & Ride 4","area":"pr4","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"04:00-09:00","name":"Luke Hammond","phone":"07700900111","escName":"Dan Pryce","escPhone":"07700900111"},{"group":"Park & Ride 4","area":"pr4","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"13:00-22:00","name":"Mira Patel","phone":"07700900111","escName":"Ravi Mann","escPhone":"07700900111"},{"group":"Park & Ride 4","area":"pr4","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"13:00-22:00","name":"Jan Price","phone":"07700900111","escName":"Ravi Mann","escPhone":"07700900111"},{"group":"Park & Ride 4","area":"pr4","dept":"Readiness Consulting","role":"R&C Support","shift":"07:00-20:00","name":"Fiona West","phone":"07700900111","escName":"Iain Ross","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Exit route to Forecourt","role":"Passenger Experience Manager","shift":"","name":"","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Exit route to Forecourt","role":"Airport Service Delivery Manager","shift":"","name":"","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Bus Stops","role":"BusCo Duty Operations Desk","shift":"24hrs","name":"","phone":"07700900111","fav":true,"escName":"","escPhone":""},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Bus Stops","role":"BusCo Duty Manager","shift":"00:00-07:00","name":"Kiran Bose","phone":"07700900111","escName":"Ryan Fox","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Bus Stops","role":"BusCo Duty Manager","shift":"00:00-07:00","name":"Tom Burke","phone":"07700900111","escName":"Ryan Fox","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Bus Stops","role":"BusCo Duty Manager","shift":"07:00-15:00","name":"Imran Aziz","phone":"07700900111","escName":"Kiran Bose","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"T4 Bus Stops","role":"BusCo Duty Manager","shift":"15:00-21:00","name":"Kiran Bose","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"04:00-14:00","name":"Tunde Bello","phone":"07700900111","escName":"Dan Pryce","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"07:00-17:00","name":"Leah / Asma","phone":"07700900111","escName":"Dan Pryce","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"13:00-22:00","name":"Sofia Ruiz","phone":"07700900111","escName":"Ravi Mann","escPhone":"07700900111"},{"group":"Arrivals Forecourt Lane 1","area":"arr","dept":"Readiness Consulting","role":"R&C Support","shift":"07:00-20:00","name":"Iain Ross","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Airport Journeys","role":"Head of Services","shift":"","name":"Kate Ashby","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Airport Journeys","role":"Services Manager Terminals","shift":"","name":"Diane Ward","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Airport Journeys","role":"Transport Services Manager","shift":"03:00-11:00","name":"Raj Kohli","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Airport Journeys","role":"Services Delivery Manager","shift":"03:00-11:00","name":"Neil Watts","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Landside Ops","role":"Lima 1","shift":"05:00-23:00","name":"Sunny Arora, Zoe King, Amir Khan, Lucy Hope, Dev Rana, Ella Stone","phone":"07700900111","fav":true,"escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Landside Arrivals PAX Flow Management","role":"Airport Control (APOC)","shift":"","name":"","phone":"07700900111","fav":true,"escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"FlowCo","role":"Operations Project Lead","shift":"06:00-13:00","name":"Anya Novak","phone":"07700900111","escName":"Vik Rao","escPhone":"07700900111"},{"group":"Arrivals Hall Landside","area":"arr","dept":"FlowCo","role":"Operations Project Lead","shift":"13:00-23:00","name":"Vik Rao","phone":"07700900111","escName":"Anya Novak","escPhone":"07700900111"},{"group":"Arrivals Hall Landside","area":"arr","dept":"Landside Arrivals PAX Flow Management","role":"TrolleyCo Passenger Service Manager","shift":"","name":"","phone":"07700900111","escName":"","escPhone":""},{"group":"Arrivals Hall Landside","area":"arr","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"04:00-14:00","name":"Tunde Bello","phone":"07700900111","escName":"Dan Pryce","escPhone":"07700900111"},{"group":"Arrivals Hall Landside","area":"arr","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"07:00-17:00","name":"Leah Cole","phone":"07700900111","escName":"Dan Pryce","escPhone":"07700900111"},{"group":"Arrivals Hall Landside","area":"arr","dept":"Operational Readiness","role":"Operational Readiness Lead/Support","shift":"13:00-22:00","name":"Sofia Ruiz","phone":"07700900111","escName":"Ravi Mann","escPhone":"07700900111"},{"group":"Arrivals Hall Landside","area":"arr","dept":"Readiness Consulting","role":"R&C Support","shift":"07:00-20:00","name":"Iain Ross","phone":"07700900111","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"Passenger Experience Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"Airport Service Delivery Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"Airport Control (APOC)","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"Airport Baggage Service Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"TrolleyCo Passenger Service Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"ParkCo Porter Service","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Baggage Reclaim","role":"AssistCo Assistance team","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Landside Arrivals PAX Flow Management","role":"Passenger Experience Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Landside Arrivals PAX Flow Management","role":"Airport Service Delivery Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"Highways England – South Mimms M25","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"God Stone M25 J1–14","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"TfL London Streets Traffic Control Centre","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"Traffic management control room","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"MSCP4","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"Long Stay Parking 4","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"Evacuation","role":"National Express","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Exit route to Forecourt","role":"Services Manager Terminals","name":"Diane Ward","phone":"07700900111","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Exit route to Forecourt","role":"TrolleyCo Passenger Service Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Service Delivery Manager Papa Base","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Passenger Experience Mgr – T4 Landside","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Passenger Experience Mgr – T4 Airside","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Alpha 1","phone":"07700900111","fav":true,"name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"T4 Security Operations Manager (SOM)","phone":"07700900111","fav":true,"name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Baggage Service Manager (BSM)","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"APOC Emergency","phone":"07700900111","fav":true,"name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Airport Operations Manager","phone":"07700900111","fav":true,"name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"Border Force Watch House","phone":"07700900111","fav":true,"name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Service & PAX Experience","role":"FlowCo Immigration Queue Timer","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Bus Stops","role":"Operations Manager","phone":"07700900111","name":"","escName":"","escPhone":""},{"group":"Useful numbers","area":"","dept":"T4 Bus Stops","role":"Passenger Experience Manager (Airport)","phone":"07700900111","name":"","escName":"","escPhone":""}],"rosterDays":[{"id":"d1","date":"2026-06-23","label":"Day 1 · MSCP4 closure"},{"id":"d2","date":"2026-06-24","label":"Day 2 · MSCP4 closure"},{"id":"d3","date":"2026-06-25","label":"Day 3 · MSCP4 closure"}],"roster":[{"day":"d1","areas":["all"],"team":"OR","shift":"04:00-14:00","name":"Dan","note":"OR lead","phone":"07700900111"},{"day":"d1","areas":["all"],"team":"OR","shift":"07:00-17:00","name":"Leah","note":"OR lead","phone":"07700900111"},{"day":"d1","areas":["all"],"team":"OR","shift":"13:00-22:00","name":"Ravi","note":"OR lead","phone":"07700900111"},{"day":"d1","areas":["all"],"team":"BC","shift":"10:30-18:30","name":"Toby","note":"Floating","phone":"07700900111"},{"day":"d1","areas":["arr","ppu"],"team":"BC","shift":"05:30-13:30","name":"Ruth","note":"","phone":""},{"day":"d1","areas":["arr","ppu"],"team":"Ops","shift":"05:30-13:30","name":"Kate A","note":"","phone":""},{"day":"d1","areas":["arr","ppu"],"team":"BC","shift":"13:00-21:00","name":"Priya","note":"","phone":"07700900111"},{"day":"d1","areas":["arr","ppu"],"team":"Ops","shift":"13:00-21:00","name":"Omar","note":"","phone":""},{"day":"d1","areas":["arr"],"team":"OR","shift":"04:00-14:00","name":"Tunde","note":"","phone":"07700900111"},{"day":"d1","areas":["arr"],"team":"OR","shift":"07:00-17:00","name":"Asma","note":"Observe","phone":""},{"day":"d1","areas":["arr"],"team":"OR","shift":"13:00-22:00","name":"Sofia","note":"","phone":"07700900111"},{"day":"d1","areas":["ppu"],"team":"OR","shift":"04:00-14:00","name":"Ben C","note":"","phone":"07700900111"},{"day":"d1","areas":["ppu"],"team":"OR","shift":"13:00-22:00","name":"Holly","note":"H2H","phone":"07700900111"},{"day":"d1","areas":["ppu"],"team":"OR","shift":"13:00-22:00","name":"Carol Brook","note":"","phone":""},{"day":"d1","areas":["pr4"],"team":"BC","shift":"05:30-13:30","name":"Nina","note":"","phone":"07700900111"},{"day":"d1","areas":["pr4"],"team":"Ops","shift":"05:30-13:30","name":"Neil Watts","note":"Floating between T4 & P&R4","phone":"07700900111"},{"day":"d1","areas":["pr4"],"team":"BC","shift":"13:00-21:00","name":"George","note":"","phone":"07700900111"},{"day":"d1","areas":["pr4"],"team":"Ops","shift":"13:00-21:00","name":"Kate A / Neil W","note":"Available on the phone","phone":""},{"day":"d1","areas":["pr4"],"team":"OR","shift":"04:00-09:00","name":"Luke H","note":"","phone":"07700900111"},{"day":"d1","areas":["pr4"],"team":"OR","shift":"13:00-22:00","name":"Jan","note":"","phone":"07700900111"},{"day":"d1","areas":["pr4"],"team":"OR","shift":"13:00-22:00","name":"Mira","note":"","phone":"07700900111"},{"day":"d2","areas":["all"],"team":"OR","shift":"04:00-14:00","name":"Dan","note":"OR lead","phone":"07700900111"},{"day":"d2","areas":["all"],"team":"OR","shift":"07:00-17:00","name":"Leah","note":"OR lead","phone":"07700900111"},{"day":"d2","areas":["all"],"team":"OR","shift":"13:00-22:00","name":"Ravi","note":"OR lead","phone":"07700900111"},{"day":"d2","areas":["arr","ppu"],"team":"BC","shift":"05:30-13:30","name":"George","note":"","phone":"07700900111"},{"day":"d2","areas":["arr","ppu"],"team":"Ops","shift":"05:30-13:30","name":"Beth","note":"","phone":""},{"day":"d2","areas":["arr","ppu"],"team":"BC","shift":"13:00-21:00","name":"Nina","note":"","phone":"07700900111"},{"day":"d2","areas":["arr","ppu"],"team":"Ops","shift":"13:00-21:00","name":"Kate A / Neil W","note":"","phone":""},{"day":"d2","areas":["arr"],"team":"OR","shift":"04:00-14:00","name":"Tunde","note":"","phone":"07700900111"},{"day":"d2","areas":["arr"],"team":"OR","shift":"13:00-22:00","name":"Jade","note":"","phone":""},{"day":"d2","areas":["ppu"],"team":"OR","shift":"13:00-22:00","name":"Holly","note":"H2H","phone":"07700900111"},{"day":"d2","areas":["ppu"],"team":"OR","shift":"13:00-22:00","name":"Carol Brook","note":"","phone":""},{"day":"d2","areas":["pr4"],"team":"BC","shift":"05:30-13:30","name":"Toby","note":"","phone":"07700900111"},{"day":"d2","areas":["pr4"],"team":"Ops","shift":"05:30-13:30","name":"Sunil","note":"Available on the phone","phone":""},{"day":"d2","areas":["pr4"],"team":"BC","shift":"13:00-21:00","name":"Ruth","note":"","phone":""},{"day":"d2","areas":["pr4"],"team":"Ops","shift":"13:00-21:00","name":"Sunil","note":"Available on the phone","phone":""},{"day":"d2","areas":["pr4"],"team":"OR","shift":"04:00-09:00","name":"Luke H","note":"","phone":"07700900111"},{"day":"d2","areas":["pr4"],"team":"OR","shift":"13:00-22:00","name":"Jan","note":"","phone":"07700900111"},{"day":"d2","areas":["pr4"],"team":"OR","shift":"13:00-22:00","name":"Mira","note":"","phone":"07700900111"},{"day":"d3","areas":["arr","ppu"],"team":"BC","shift":"05:30-13:30","name":"Ruth","note":"","phone":""},{"day":"d3","areas":["arr","ppu"],"team":"Ops","shift":"05:30-13:30","name":"Beth","note":"","phone":""},{"day":"d3","areas":["arr","ppu"],"team":"BC","shift":"13:00-21:00","name":"Toby","note":"","phone":"07700900111"},{"day":"d3","areas":["arr","ppu"],"team":"Ops","shift":"13:00-21:00","name":"Abby","note":"","phone":""},{"day":"d3","areas":["pr4"],"team":"BC","shift":"05:30-13:30","name":"Nina","note":"","phone":"07700900111"},{"day":"d3","areas":["pr4"],"team":"Ops","shift":"05:30-13:30","name":"Sunil / Neil / Raj","note":"Floating between T4 & P&R4","phone":""},{"day":"d3","areas":["pr4"],"team":"BC","shift":"13:00-21:00","name":"Priya","note":"","phone":"07700900111"},{"day":"d3","areas":["pr4"],"team":"Ops","shift":"13:00-21:00","name":"Sunil / Neil / Raj","note":"Floating between T4 & P&R4","phone":""}],"dates":[{"date":"2026-06-18","time":"10:30-11:00","type":"Meeting","title":"−5 days Ready To Go OR countdown","format":"Teams meeting","attendees":"OR, BC, Project, Airlines, Airport Journey, Delivery Partners","detail":""},{"date":"2026-06-22","time":"10:00-11:00","type":"Meeting","title":"−1 day Ready To Go OR countdown","format":"Teams meeting","attendees":"OR, BC, Project, Airlines, Airport Journey, Delivery Partners","detail":""},{"date":"2026-06-23","time":"","type":"Milestone","title":"MSCP4 closes · new arrangements live","format":"","attendees":"","detail":"Business Change event Day 1. Arriving and departing passenger changes take effect."},{"date":"2026-06-23","time":"09:00-09:30","type":"Meeting","title":"Go Live Operations · OR hot wash-up review","format":"Teams meeting","attendees":"OR, BC, Project, Airlines, Airport Journey, Delivery Partners","detail":""},{"date":"2026-06-23","time":"15:00-15:30","type":"Meeting","title":"Go Live Operations · OR hot wash-up review","format":"Teams meeting","attendees":"OR, BC, Project, Airlines, Airport Journey, Delivery Partners","detail":""},{"date":"2026-06-24","time":"","type":"Event","title":"Business Change event Day 2","format":"","attendees":"","detail":"MSCP4 closure support continues."},{"date":"2026-06-24","time":"10:00-10:30","type":"Meeting","title":"Go Live Operations · OR hot wash-up review","format":"Teams meeting","attendees":"OR, BC, Project, Airlines, Airport Journey, Delivery Partners","detail":""},{"date":"2026-06-25","time":"","type":"Event","title":"Business Change event Day 3","format":"","attendees":"","detail":"MSCP4 closure support continues."},{"date":"2026-07-08","time":"10:00-11:00","type":"Meeting","title":"OR lessons learnt session","format":"Teams meeting","attendees":"OR, BC, Project, Airlines, Airport Journey, Delivery Partners","detail":""}],"journeys":[{"section":"Departing","title":"Public Transport","body":"Passengers who travel to Terminal 4 using public transport, including:\n- Underground\n- Airport express rail\n- Buses\nCan continue to use all available public transport routes to and from the Terminal.","highlight":""},{"section":"Departing","title":"Departures Forecourt Drop-Off","body":"Terminal 4 Departures level Drop-Off will remain open.\nThe existing £7 Drop-Off charge will apply.","highlight":"£7 Drop-Off charge"},{"section":"Departing","title":"Park & Ride 4","body":"For short stays, Passengers can park at Park & Ride 4 (Zone A) and use the dedicated bus service to reach Terminal 4.\nFor long stays, Passengers can park at Park & Ride 4 (Zones B–D) and use the existing bus service to reach Terminal 4.","highlight":""},{"section":"Departing","title":"Free Remote Drop-Off","body":"At Park & Ride 4, free remote Drop-Off is available in Zone A, with a quick and frequent shuttle bus service to Terminal 4.\nParking is free for up to 2 hours, to allow family and friends to accompany Passengers to the terminal.","highlight":"2 hours free parking at Park & Ride 4 Zone A"},{"section":"Arriving","title":"Public Transport","body":"Passengers can leave Terminal 4 using public transport, such as:\n- London Underground\n- Airport express rail\n- Buses\nBlack taxis continue to operate from outside Arrivals.","highlight":""},{"section":"Arriving","title":"Priority Pick-Up","body":"1. Exit Arrivals hall and follow signs to Priority Pick-Up (ground floor MSCP4).\n2. Locate family / friends, taxi, private-hire or app-based taxi in the Priority Pick-Up area.\n3. Vehicle leaves Priority Pick-Up.","highlight":"","charges":true},{"section":"Arriving","title":"Park & Ride 4 (Long-stay Zones B–D)","body":"Passenger takes the Park & Ride 4 shuttle bus from bus stop 3 on the Arrivals forecourt.\nPassenger collects their car and leaves Park & Ride 4 as usual.","highlight":"Bus stop 3"},{"section":"Arriving","title":"Free Remote Pick-Up (Zone A)","body":"Passenger can take a bus from bus stops 5, 6 and 7 on the Arrivals forecourt to the Free Pick-Up area in Park & Ride 4 Zone A.\nFamily and friends can also park in Park & Ride Zone A and take the bus to Terminal 4 to greet Passengers.","highlight":"2 hours free parking at Park & Ride 4 Zone A"},{"section":"Passenger support","title":"Signage","body":"Clear, consistent signage and wayfinding will be in place at key points to help Passengers navigate their journey through Terminal 4.","highlight":"","signs":true},{"section":"Passenger support","title":"Passengers","body":"For more information on the parking arrangements at Terminal 4, Passengers should visit the airport website before travelling to the airport.","highlight":""},{"section":"Passenger support","title":"Supporting Passengers on the day","body":"Customer Hosts will be on hand at Terminal 4 to support Passengers with their journey needs.","highlight":""}],"charges":[{"price":"£7","label":"0–10 minutes"},{"price":"£14","label":"11–29 minutes"},{"price":"£25","label":"30–60 minutes"},{"price":"£25","label":"Over 60 minutes · £25 for each additional 60 minutes (or part thereof)"},{"price":"£200","label":"Maximum daily charge"}],"signs":[{"arrow":"↑","text":"Priority pick-up","sub":"","tone":"dark"},{"arrow":"↑","text":"App & Private hire","sub":"","tone":"yellow"},{"arrow":"←","text":"Shuttle bus to Pick-up & Drop-off","sub":"Bus stops 5–7","tone":"violet"},{"arrow":"→","text":"Bus to Park & Ride","sub":"Bus stop 3","tone":"plum"},{"arrow":"↑","text":"Bus stops 8–27","sub":"National and local services","tone":"yellow"},{"arrow":"←","text":"Taxis","sub":"","tone":"yellow"},{"arrow":"↖","text":"Smoking area","sub":"","tone":"yellow"}],"vms":"TURN LEFT\nFOR PARK\nAND RIDE 4\nSHUTTLES","forecast":{"amber":1200,"red":1450,"note":"Sample figures for the demo.","days":[{"label":"23 Jun","date":"2026-06-23","immigration":{"start":6,"values":[1300,1400,1780,1440,1760,1440,1160,1100,840,1120,1370,1230,1390,1840,1290,1710,830,170]},"checkin":{"start":4,"values":[880,1240,1780,1580,1850,1710,1540,1450,1380,1260,1140,1290,1640,1640,1580,1080,590,50]}},{"label":"24 Jun","date":"2026-06-24","immigration":{"start":6,"values":[1430,1510,1630,1660,1730,1420,1410,1150,900,1160,1550,1520,1510,1600,1620,1660,780,160]},"checkin":{"start":4,"values":[830,1230,1380,1960,1800,1940,1890,1580,1540,1240,1370,1400,1910,2270,1780,1330,590,80]}}]},"surface":{"months":["Jan 25","Feb 25","Mar 25","Apr 25","May 25","Jun 25","Jul 25","Aug 25","Sep 25","Oct 25","Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26"],"tiles":[{"label":"Net public transport · monthly","value":"39.6%","verify":false},{"label":"Net public transport · MAA","value":"40.8%","verify":false}],"rows":[{"mode":"Walked","vals":[2.3,2.2,0.6,0.8,0.8,0.4,1.2,0.7,2.8,1.7,2.6,2.3,2.9,2.0,1.7,1.5]},{"mode":"Taxi (Black Cab)","vals":[2.2,3.6,2.2,1.8,1.6,3.4,2.8,0.9,1.7,0.8,1.1,5.5,0.7,0.5,1.4,2.8]},{"mode":"Rental car","vals":[0.4,0.4,0.4,1.8,1.7,1.8,2.4,2.6,1.0,0.6,1.4,0.9,1.9,2.1,0.6,2.7]},{"mode":"Rail: Unspecified","vals":[0.3,0.4,1.5,1.2,1.2,1.0,null,null,null,1.2,0.3,0.3,0.7,0.5,null,null]},{"mode":"Rail: Piccadilly Line (incl. Underground)","vals":[10.2,9.9,11.3,11.9,15.3,8.2,8.3,10.2,8.5,9.7,10.4,18.0,12.9,17.8,13.5,9.6]},{"mode":"Rail: Airport express rail","vals":[1.9,1.6,1.7,3.2,1.6,1.5,3.9,0.3,1.8,2.4,0.7,3.2,2.5,2.9,3.2,2.0]},{"mode":"Rail: Elizabeth Line","vals":[14.3,10.4,18.6,11.2,20.5,17.9,15.0,16.4,17.1,14.0,20.3,16.6,12.4,15.2,17.6,16.0]},{"mode":"Public bus","vals":[1.7,2.8,1.8,2.1,1.5,2.7,2.8,1.5,2.9,4.7,1.5,0.2,3.0,3.0,1.4,3.3]},{"mode":"Private Car – Kiss & Fly","vals":[34.5,29.4,22.2,21.2,27.8,15.8,23.2,27.8,23.8,26.8,21.6,17.1,25.2,16.6,22.3,29.1]},{"mode":"Private Car – Car Park (Non-airport)","vals":[0.8,1.5,2.7,1.4,0.8,2.0,1.3,1.9,1.7,0.5,2.3,2.4,2.1,1.4,2.8,1.1]},{"mode":"Private Car – Car Park (Airport)","vals":[1.0,6.3,2.5,7.2,5.9,2.9,3.0,5.7,4.3,5.4,2.1,3.4,3.1,4.2,3.9,1.7]},{"mode":"Other Scheduled Coach","vals":[2.7,2.4,1.7,1.3,1.2,1.5,1.5,3.5,3.0,2.1,2.1,1.9,2.4,2.3,2.5,1.7]},{"mode":"Other","vals":[0.4,null,0.5,null,null,null,null,null,null,0.4,null,null,0.3,null,null,0.4]},{"mode":"National Express Coach","vals":[8.6,10.8,5.5,4.2,4.9,7.3,5.9,6.7,5.7,6.1,4.9,4.8,8.5,7.6,4.2,4.7]},{"mode":"Minicab / private hire (e.g. Uber, Bolt, Addison Lee)","vals":[19.8,18.8,26.2,32.0,23.9,32.8,31.8,23.3,29.6,31.2,31.8,20.1,22.6,18.9,22.3,21.8]},{"mode":"Hotel Shuttle","vals":[null,0.6,null,1.6,null,null,0.6,0.8,0.3,0.3,0.3,0.3,0.1,null,0.7,0.3]},{"mode":"Charter Coach / Bus","vals":[null,0.5,0.4,1.1,0.6,null,0.8,1.2,0.4,0.6,0.3,0.2,0.3,0.2,null,0.5]}]},"partners":[{"name":"AssistCo","url":"","desc":"Passenger assistance (PRM) at the terminal and Park & Ride 4.","match":"AssistCo"},{"name":"TrolleyCo","url":"","desc":"Trolley and passenger service in Arrivals and Baggage Reclaim.","match":"TrolleyCo"},{"name":"ParkCo","url":"","desc":"Car park and Priority Pick-Up service delivery; porter service.","match":"ParkCo"},{"name":"BusCo","url":"","desc":"Terminal bus stops and Park & Ride 4 shuttle operations.","match":"BusCo"},{"name":"FlowCo","url":"","desc":"Arrivals hall passenger flow and queue timing.","match":"FlowCo"}],"images":[{"title":"Terminal Arrivals · onward travel","category":"Maps","caption":"Sample map. Replace with the real map image.","src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDcyMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIj48cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI3MjAiIGZpbGw9IiNGNEYxRjciLz48dGV4dCB4PSI0MCIgeT0iNjQiIGZvbnQtc2l6ZT0iMzQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiMyQjFGM0QiPlRlcm1pbmFsIEFycml2YWxzIMK3IG9ud2FyZCB0cmF2ZWwsIGdyb3VuZCBmbG9vcjwvdGV4dD48dGV4dCB4PSI0MCIgeT0iMTAwIiBmb250LXNpemU9IjIwIiBmaWxsPSIjNkE2MDc4Ij5TYW1wbGUgbWFwIGZvciB0aGUgZGVtbyDCtyBub3QgdG8gc2NhbGU8L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjE0MCIgd2lkdGg9IjEwODAiIGhlaWdodD0iMTUwIiByeD0iMTAiIGZpbGw9IiM0QTJBN0EiLz48dGV4dCB4PSI2MDAiIHk9IjIyNSIgZm9udC1zaXplPSIzMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VGVybWluYWwgYnVpbGRpbmcgwrcgQXJyaXZhbHM8L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjMyMCIgd2lkdGg9IjEwODAiIGhlaWdodD0iNzAiIHJ4PSI4IiBmaWxsPSIjRENENUU0Ii8+PHRleHQgeD0iODAiIHk9IjM2NCIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzJCMUYzRCI+TGFuZSAxPC90ZXh0PjxyZWN0IHg9IjIyMCIgeT0iMzM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMjQwIiB5PSIzNjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjE8L3RleHQ+PHJlY3QgeD0iMzUwIiB5PSIzMzUiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNGMkIyMUMiLz48dGV4dCB4PSIzNzAiIHk9IjM2MiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE3MTIwQiI+MjwvdGV4dD48cmVjdCB4PSI0ODAiIHk9IjMzNSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9IjUwMCIgeT0iMzYyIiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTcxMjBCIj4zPC90ZXh0PjxyZWN0IHg9IjYxMCIgeT0iMzM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNjMwIiB5PSIzNjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjQ8L3RleHQ+PHJlY3QgeD0iNzQwIiB5PSIzMzUiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNGMkIyMUMiLz48dGV4dCB4PSI3NjAiIHk9IjM2MiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE3MTIwQiI+NTwvdGV4dD48cmVjdCB4PSI4NzAiIHk9IjMzNSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9Ijg5MCIgeT0iMzYyIiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTcxMjBCIj42PC90ZXh0PjxyZWN0IHg9IjEwMDAiIHk9IjMzNSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9IjEwMjAiIHk9IjM2MiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE3MTIwQiI+NzwvdGV4dD48cmVjdCB4PSI2MCIgeT0iNDIwIiB3aWR0aD0iMTA4MCIgaGVpZ2h0PSI3MCIgcng9IjgiIGZpbGw9IiNEQ0Q1RTQiLz48dGV4dCB4PSI4MCIgeT0iNDY0IiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMkIxRjNEIj5MYW5lIDI8L3RleHQ+PHJlY3QgeD0iMjIwIiB5PSI0MzUiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcng9IjYiIGZpbGw9IiNGMkIyMUMiLz48dGV4dCB4PSIyNDAiIHk9IjQ2MiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE3MTIwQiI+ODwvdGV4dD48cmVjdCB4PSIzNTAiIHk9IjQzNSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9IjM3MCIgeT0iNDYyIiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTcxMjBCIj45PC90ZXh0PjxyZWN0IHg9IjQ4MCIgeT0iNDM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNTAwIiB5PSI0NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjEwPC90ZXh0PjxyZWN0IHg9IjYxMCIgeT0iNDM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNjMwIiB5PSI0NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjExPC90ZXh0PjxyZWN0IHg9Ijc0MCIgeT0iNDM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNzYwIiB5PSI0NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjEyPC90ZXh0PjxyZWN0IHg9Ijg3MCIgeT0iNDM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iODkwIiB5PSI0NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjEzPC90ZXh0PjxyZWN0IHg9IjEwMDAiIHk9IjQzNSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9IjEwMjAiIHk9IjQ2MiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE3MTIwQiI+MTQ8L3RleHQ+PHJlY3QgeD0iNjAiIHk9IjUyMCIgd2lkdGg9IjEwODAiIGhlaWdodD0iNzAiIHJ4PSI4IiBmaWxsPSIjRENENUU0Ii8+PHRleHQgeD0iODAiIHk9IjU2NCIgZm9udC1zaXplPSIyMCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzJCMUYzRCI+TGFuZSAzPC90ZXh0PjxyZWN0IHg9IjIyMCIgeT0iNTM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMjQwIiB5PSI1NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjE1PC90ZXh0PjxyZWN0IHg9IjM1MCIgeT0iNTM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMzcwIiB5PSI1NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjE2PC90ZXh0PjxyZWN0IHg9IjQ4MCIgeT0iNTM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNTAwIiB5PSI1NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjE3PC90ZXh0PjxyZWN0IHg9IjYxMCIgeT0iNTM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNjMwIiB5PSI1NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjE4PC90ZXh0PjxyZWN0IHg9Ijc0MCIgeT0iNTM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iNzYwIiB5PSI1NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjE5PC90ZXh0PjxyZWN0IHg9Ijg3MCIgeT0iNTM1IiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iODkwIiB5PSI1NjIiIGZvbnQtc2l6ZT0iMTgiIGZvbnQtd2VpZ2h0PSI3MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMxNzEyMEIiPjIwPC90ZXh0PjxyZWN0IHg9IjEwMDAiIHk9IjUzNSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iNiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9IjEwMjAiIHk9IjU2MiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzE3MTIwQiI+MjE8L3RleHQ+PHJlY3QgeD0iMzAwIiB5PSI2MjAiIHdpZHRoPSI2MDAiIGhlaWdodD0iNzAiIHJ4PSI4IiBmaWxsPSIjOEExRjVEIi8+PHRleHQgeD0iNjAwIiB5PSI2NjQiIGZvbnQtc2l6ZT0iMjQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlByaW9yaXR5IFBpY2stVXAgYXJlYTwvdGV4dD48L3N2Zz4="},{"title":"Terminal to Park & Ride 4 journey","category":"Maps","caption":"Sample map. Replace with the real map image.","src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDcyMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIj48cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI3MjAiIGZpbGw9IiNGNEYxRjciLz48dGV4dCB4PSI0MCIgeT0iNjQiIGZvbnQtc2l6ZT0iMzQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiMyQjFGM0QiPlRlcm1pbmFsIHRvIFBhcmsgJmFtcDsgUmlkZSA0IGpvdXJuZXk8L3RleHQ+PHRleHQgeD0iNDAiIHk9IjEwMCIgZm9udC1zaXplPSIyMCIgZmlsbD0iIzZBNjA3OCI+U2FtcGxlIG1hcCBmb3IgdGhlIGRlbW8gwrcgbm90IHRvIHNjYWxlPC90ZXh0PjxyZWN0IHg9IjgwIiB5PSIxNjAiIHdpZHRoPSIzMDAiIGhlaWdodD0iMjAwIiByeD0iMTIiIGZpbGw9IiM0QTJBN0EiLz48dGV4dCB4PSIyMzAiIHk9IjI3MCIgZm9udC1zaXplPSIzMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VGVybWluYWw8L3RleHQ+PHJlY3QgeD0iNzYwIiB5PSI0MjAiIHdpZHRoPSIzNjAiIGhlaWdodD0iMjMwIiByeD0iMTIiIGZpbGw9IiM4QTFGNUQiLz48dGV4dCB4PSI5NDAiIHk9IjU0NSIgZm9udC1zaXplPSIyOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UGFyayAmYW1wOyBSaWRlIDQ8L3RleHQ+PHBhdGggZD0iTTM4MCAzMDAgQyA1NjAgMzIwLCA2MDAgNDgwLCA3NjAgNTIwIiBzdHJva2U9IiNGMkIyMUMiIHN0cm9rZS13aWR0aD0iMTQiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjxwYXRoIGQ9Ik0zODAgMjUwIEMgNjIwIDIyMCwgNzAwIDQwMCwgNzYwIDQ3MCIgc3Ryb2tlPSIjMkU3QTREIiBzdHJva2Utd2lkdGg9IjgiIGZpbGw9Im5vbmUiIHN0cm9rZS1kYXNoYXJyYXk9IjE4IDEyIi8+PHJlY3QgeD0iODAiIHk9IjU2MCIgd2lkdGg9IjUyMCIgaGVpZ2h0PSIxMTAiIHJ4PSIxMCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjRENENUU0Ii8+PHJlY3QgeD0iMTA0IiB5PSI1OTAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIxMiIgZmlsbD0iI0YyQjIxQyIvPjx0ZXh0IHg9IjE2MCIgeT0iNjAyIiBmb250LXNpemU9IjIwIiBmaWxsPSIjMkIxRjNEIj5QYXJrICZhbXA7IFJpZGUgdG8gdGVybWluYWwgwrcgYWJvdXQgNCBtaW48L3RleHQ+PHJlY3QgeD0iMTA0IiB5PSI2MzAiIHdpZHRoPSI0MCIgaGVpZ2h0PSI2IiBmaWxsPSIjMkU3QTREIi8+PHRleHQgeD0iMTYwIiB5PSI2NDAiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiMyQjFGM0QiPlRlcm1pbmFsIHRvIFBhcmsgJmFtcDsgUmlkZSDCtyBhYm91dCA1IG1pbjwvdGV4dD48L3N2Zz4="},{"title":"Park & Ride 4 car park","category":"Maps","caption":"Sample map. Replace with the real map image.","src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDcyMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIj48cmVjdCB3aWR0aD0iMTIwMCIgaGVpZ2h0PSI3MjAiIGZpbGw9IiNGNEYxRjciLz48dGV4dCB4PSI0MCIgeT0iNjQiIGZvbnQtc2l6ZT0iMzQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiMyQjFGM0QiPlBhcmsgJmFtcDsgUmlkZSA0IGNhciBwYXJrPC90ZXh0Pjx0ZXh0IHg9IjQwIiB5PSIxMDAiIGZvbnQtc2l6ZT0iMjAiIGZpbGw9IiM2QTYwNzgiPlNhbXBsZSBtYXAgZm9yIHRoZSBkZW1vIMK3IG5vdCB0byBzY2FsZTwvdGV4dD48cmVjdCB4PSI4MCIgeT0iMTYwIiB3aWR0aD0iMTcwIiBoZWlnaHQ9IjQ2MCIgcng9IjEwIiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMTY1IiB5PSI0MDAiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSI4MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMyQjFGM0QiPlpvbmUgQTwvdGV4dD48cmVjdCB4PSIyNzAiIHk9IjE2MCIgd2lkdGg9IjE3MCIgaGVpZ2h0PSI0NjAiIHJ4PSIxMCIgZmlsbD0iI0U4REZGNSIvPjx0ZXh0IHg9IjM1NSIgeT0iNDAwIiBmb250LXNpemU9IjQwIiBmb250LXdlaWdodD0iODAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMkIxRjNEIj5ab25lIEI8L3RleHQ+PHJlY3QgeD0iNDYwIiB5PSIxNjAiIHdpZHRoPSIxNzAiIGhlaWdodD0iNDYwIiByeD0iMTAiIGZpbGw9IiNFOERGRjUiLz48dGV4dCB4PSI1NDUiIHk9IjQwMCIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9IjgwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzJCMUYzRCI+Wm9uZSBDPC90ZXh0PjxyZWN0IHg9IjY1MCIgeT0iMTYwIiB3aWR0aD0iMTcwIiBoZWlnaHQ9IjQ2MCIgcng9IjEwIiBmaWxsPSIjRThERkY1Ii8+PHRleHQgeD0iNzM1IiB5PSI0MDAiIGZvbnQtc2l6ZT0iNDAiIGZvbnQtd2VpZ2h0PSI4MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiMyQjFGM0QiPlpvbmUgRDwvdGV4dD48cmVjdCB4PSI4ODAiIHk9IjE2MCIgd2lkdGg9IjI2MCIgaGVpZ2h0PSI0NjAiIHJ4PSIxMCIgZmlsbD0iIzRBMkE3QSIvPjxyZWN0IHg9Ijk5MCIgeT0iMjIwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMTAxMCIgeT0iMjQ3IiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTcxMjBCIj4xPC90ZXh0PjxyZWN0IHg9Ijk5MCIgeT0iMzQwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMTAxMCIgeT0iMzY3IiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTcxMjBCIj4yPC90ZXh0PjxyZWN0IHg9Ijk5MCIgeT0iNDYwIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjRjJCMjFDIi8+PHRleHQgeD0iMTAxMCIgeT0iNDg3IiBmb250LXNpemU9IjE4IiBmb250LXdlaWdodD0iNzAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSIjMTcxMjBCIj4zPC90ZXh0Pjx0ZXh0IHg9IjEwMTAiIHk9IjYwMCIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QnVzIHN0b3BzPC90ZXh0Pjx0ZXh0IHg9IjE2NSIgeT0iNjYwIiBmb250LXNpemU9IjIwIiBmaWxsPSIjMkIxRjNEIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GcmVlIHBpY2stdXAgLyBkcm9wLW9mZiAoMiBocnMpPC90ZXh0Pjwvc3ZnPg=="}],"projectInfo":[{"title":"Departures Drop-Off charge","body":"Terminal 4 Departures level Drop-Off remains open. The existing £7 Drop-Off charge applies."}]}</script><script id="tsp-main">
+(function(){
+"use strict";
+var RESET=':root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}';
+var S=JSON.parse(document.getElementById('tsp-data').textContent);
+var BASE=S.savedAt||0;
+var ART=null, artChecked=false, canPublish=true;
+var dirty=false, editing=false, saving=false, deviceSaved=false;
+var VIEWS=[
+ ['overview','Overview','home'],['contacts','Contacts','phone'],['whos-on','Who’s on','clock'],['roster','Roster','grid'],
+ ['dates','Key dates','cal'],['notices','Notices','bell'],['journeys','Airport journeys','route'],['data','Forecast & data','chart'],
+ ['maps','Maps & images','image'],['partners','Partners','link']];
+var ui={view:'overview',cGroup:'All',cQuery:'',cOnNow:false,rDay:null,wDay:null,wTime:null,fDay:0,imgCat:'All'};
+try{var su=JSON.parse(localStorage.getItem('tsp-ui')||'{}');['cGroup','cOnNow','rDay','fDay','imgCat'].forEach(function(k){if(su[k]!=null)ui[k]=su[k];});}catch(e){}
+function saveUi(){try{localStorage.setItem('tsp-ui',JSON.stringify({cGroup:ui.cGroup,cOnNow:ui.cOnNow,rDay:ui.rDay,fDay:ui.fDay,imgCat:ui.imgCat}));}catch(e){}}
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function ensureIds(){['contacts','roster','dates','notices','images','partners','journeys','todo','charges','signs','projectInfo'].forEach(function(k){(S[k]||[]).forEach(function(x){if(!x.id)x.id=uid();});});}
+ensureIds();
+var IC={
+ home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+ grid:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ bell:'<path d="M6 16V11a6 6 0 1 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+ route:'<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ image:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 17l-5-5-9 8"/>',
+ link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+ copy:'<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/>',
+ edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ zin:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M11 8v6M8 11h6"/>',
+ zout:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6"/>',
+ fit:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+ save:'<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h8V4M8 20v-6h8v6"/>',
+ up:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+ swap:'<path d="M4 7h13l-3-3M20 17H7l3 3"/>',
+ clipboard:'<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/>',
+ trash:'<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'};
+function ic(n){return '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">'+(IC[n]||'')+'</svg>';}
+function digits(p){return String(p||'').replace(/[^\d+]/g,'');}
+function fmtPhone(p){var d=digits(p);if(!d)return '';
+ if(/^07\d{9}$/.test(d))return d.slice(0,5)+' '+d.slice(5);
+ if(/^02\d{9}$/.test(d))return d.slice(0,3)+' '+d.slice(3,7)+' '+d.slice(7);
+ if(/^0[38]\d{9}$/.test(d))return d.slice(0,4)+' '+d.slice(4,7)+' '+d.slice(7);
+ if(/^01\d{9}$/.test(d))return d.slice(0,5)+' '+d.slice(5,8)+' '+d.slice(8);
+ return p;}
+var DEMO_DIAL='07700900111';
+function isDemo(p){return /demo/i.test(String(p||''));}
+function dialOf(p){return isDemo(p)?DEMO_DIAL:digits(p);}
+function tel(p,cls,label){var d=digits(p);if(!d)return '';if(isDemo(p))return '<a class="'+(cls||'')+'" href="tel:'+DEMO_DIAL+'" title="Demo: dials a fictional number">'+(label||'')+esc(p)+'</a>';return '<a class="'+(cls||'')+'" href="tel:'+esc(d)+'">'+(label||'')+esc(fmtPhone(p))+'</a>';}
+function copyBtn(p){var d=digits(p);if(!d)return '';if(isDemo(p))p='07700 900111';return '<button type="button" class="iconbtn" data-act="copy" data-v="'+esc(fmtPhone(p))+'" title="Copy number" aria-label="Copy '+esc(fmtPhone(p))+'">'+ic('copy')+'</button>';}
+function toMin(t){var m=/^(\d{1,2})[:.](\d{2})$/.exec(String(t).trim());return m?(+m[1])*60+(+m[2]):null;}
+function parseShift(s){if(!s)return null;s=String(s).trim();if(/24\s*h/i.test(s))return[0,1440];var p=s.split(/\s*[-–—]\s*/);if(p.length!==2)return null;var a=toMin(p[0]),b=toMin(p[1]);if(a==null||b==null)return null;return[a,b];}
+function onAt(s,m){var r=parseShift(s);if(!r)return null;if(r[0]===0&&r[1]===1440)return true;return r[1]>r[0]?(m>=r[0]&&m<r[1]):(m>=r[0]||m<r[1]);}
+function fmtShift(s){var r=parseShift(s);if(!r)return s||'';if(r[0]===0&&r[1]===1440)return '24 hrs';return hm(r[0])+'–'+hm(r[1]%1440===0&&r[1]!==0?r[1]:r[1]);}
+function hm(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+function nowMin(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function pDate(iso){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');return m?new Date(+m[1],+m[2]-1,+m[3]):null;}
+function fmtDate(iso,long){var d=pDate(iso);if(!d)return iso||'';return (long?DOW[d.getDay()]+' ':'')+d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear();}
+function dayDiff(iso){var d=pDate(iso);if(!d)return null;var t=pDate(todayISO());return Math.round((d-t)/864e5);}
+function areaOf(k){return (S.areas||[]).find(function(a){return a.key===k;});}
+function areaLabel(k){var a=areaOf(k);return a?a.label:'';}
+function lines(body){
+ var out='',list=null,ls=String(body||'').split('\n');
+ function close(){if(list){out+='</'+list+'>';list=null;}}
+ ls.forEach(function(l){var t=l.trim();if(!t){close();return;}
+  var b=/^[-•]\s+(.*)$/.exec(t),n=/^\d+[.)]\s+(.*)$/.exec(t);
+  if(b){if(list!=='ul'){close();out+='<ul>';list='ul';}out+='<li>'+esc(b[1])+'</li>';}
+  else if(n){if(list!=='ol'){close();out+='<ol>';list='ol';}out+='<li>'+esc(n[1])+'</li>';}
+  else{close();out+='<p>'+esc(t)+'</p>';}});
+ close();return out;}
+function linkify(s){return esc(s).replace(/\b(heathrow\.com)\b/g,'<a href="https://www.heathrow.com" target="_blank" rel="noopener">$1</a>');}
+
+/* ---------- persistence ---------- */
+function markDirty(){dirty=true;deviceSaved=false;try{localStorage.setItem('tsp-draft',JSON.stringify({base:BASE,at:Date.now(),data:S}));}catch(e){}renderTop();}
+function buildDoc(){
+ var style=document.getElementById('tsp-style').textContent;
+ var main=document.getElementById('tsp-main').textContent;
+ var json=JSON.stringify(S).replace(/</g,'\\u003c');
+ return '<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>'+RESET+'</style></head><body>'+
+  '<title>Operational Readiness Transition Support Pack</title><meta name="claude:viewport-fit-sides" content="cover"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;700;800&family=Red+Hat+Mono:wght@500;600&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">'+
+  '<style id="tsp-style">'+style+'</style><div id="app"></div><script type="application/json" id="tsp-data">'+json+'<\/script><script id="tsp-main">'+main+'<\/script></body></html>';}
+function save(){
+ if(saving)return;
+ if(!ART||!canPublish){deviceSaved=true;dirty=false;renderTop();toast('Saved on this device. Other people won’t see these changes.');return;}
+ saving=true;renderTop();
+ var prev=S.savedAt;S.savedAt=Date.now();
+ try{localStorage.setItem('tsp-draft',JSON.stringify({base:BASE,at:Date.now(),data:S,publishing:true}));}catch(e){}
+ Promise.resolve().then(function(){return ART.publish(buildDoc());}).then(function(){
+   try{localStorage.removeItem('tsp-draft');}catch(e){}
+   saving=false;dirty=false;renderTop();toast('Saved. Everyone with the link sees this version.');
+ }).catch(function(err){
+   saving=false;S.savedAt=prev;var c=err&&err.code;
+   if(c==='conflict'){toast('Someone else saved first. The page will reload to their version.');}
+   else if(c==='not_granted'||c==='not_writer'){canPublish=false;deviceSaved=true;dirty=false;toast('You can view this pack but not save it for others. Changes are kept on this device.');}
+   else{toast('Couldn’t save ('+((err&&err.message)||'unknown error')+'). Your changes are kept on this device; try Save again.');}
+   renderTop();});}
+var pendingDraft=null;
+(function checkDraft(){try{var d=JSON.parse(localStorage.getItem('tsp-draft')||'null');if(d&&d.data&&d.base===BASE&&d.at>BASE){pendingDraft=d;}}catch(e){}})();
+function useClaude(){
+ if(!(window.claude&&typeof window.claude.use==='function')){artChecked=true;applyDeviceMode();renderTop();return;}
+ window.claude.use('artifact').then(function(a){ART=a;artChecked=true;if(!a)applyDeviceMode();renderTop();if(pendingDraft)render();}).catch(function(){artChecked=true;applyDeviceMode();renderTop();});
+ window.claude.use('comments').then(function(c){COMMENTS=c;if(c)renderTop();}).catch(function(){});}
+var COMMENTS=null;
+function feedback(){if(!COMMENTS)return;var tgt=document.querySelector('#main .wrap h2')||document.querySelector('#main .wrap');
+ COMMENTS.openComposer({element:tgt}).then(function(r){if(r&&r.opened===false)toast('Tap the page once, then try Feedback again.');}).catch(function(err){if(err&&err.code==='unavailable'){COMMENTS=null;renderTop();toast('Comments aren’t available in this view.');}else toast('Couldn’t open the comment box.');});}
+function applyDeviceMode(){if(pendingDraft&&!ART){S=pendingDraft.data;ensureIds();pendingDraft=null;deviceSaved=true;render();}}
+
+/* ---------- toast ---------- */
+var tT=null;
+function toast(msg){var el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';el.setAttribute('role','status');document.body.appendChild(el);}el.textContent=msg;el.hidden=false;clearTimeout(tT);tT=setTimeout(function(){el.hidden=true;},3800);}
+
+/* ---------- modal form ---------- */
+var FORM=null;
+function openForm(o){FORM=o;var h='<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mtitle"><form id="mform" novalidate><header><h3 id="mtitle">'+esc(o.title)+'</h3><button type="button" class="iconbtn" data-act="mclose" aria-label="Close">'+ic('x')+'</button></header><div class="fields">';
+ o.fields.forEach(function(f,i){var v=o.values&&o.values[f.k];if(v==null)v=f.def!=null?f.def:'';var id='f_'+f.k;
+  if(f.type==='checkbox'){h+='<div class="fld check"><input type="checkbox" id="'+id+'" name="'+f.k+'"'+(v?' checked':'')+'><label for="'+id+'">'+esc(f.label)+'</label></div>';return;}
+  h+='<div class="fld">';
+  if(f.type==='multi'){h+='<span class="lab">'+esc(f.label)+'</span><div class="multi">';f.options.forEach(function(op,j){var on=(v||[]).indexOf(op[0])>=0;h+='<label><input type="checkbox" id="'+id+'_'+j+'" name="'+f.k+'" value="'+esc(op[0])+'"'+(on?' checked':'')+'> '+esc(op[1])+'</label>';});h+='</div>';}
+  else{h+='<label for="'+id+'">'+esc(f.label)+'</label>';
+   if(f.type==='textarea')h+='<textarea id="'+id+'" name="'+f.k+'"'+(f.code?' class="code"':'')+(f.ph?' placeholder="'+esc(f.ph)+'"':'')+'>'+esc(v)+'</textarea>';
+   else if(f.type==='select'){h+='<select id="'+id+'" name="'+f.k+'">';f.options.forEach(function(op){var val=Array.isArray(op)?op[0]:op,lab=Array.isArray(op)?op[1]:op;h+='<option value="'+esc(val)+'"'+(String(val)===String(v)?' selected':'')+'>'+esc(lab)+'</option>';});h+='</select>';}
+   else{var dl=f.list?' list="'+id+'_dl"':'';h+='<input type="'+(f.type||'text')+'" id="'+id+'" name="'+f.k+'" value="'+esc(v)+'"'+dl+(f.ph?' placeholder="'+esc(f.ph)+'"':'')+'>';
+    if(f.list){h+='<datalist id="'+id+'_dl">'+f.list.map(function(x){return '<option value="'+esc(x)+'">';}).join('')+'</datalist>';}}}
+  if(f.hint)h+='<span class="hint">'+esc(f.hint)+'</span>';
+  h+='</div>';});
+ h+='</div><footer>'+(o.onDelete?'<button type="button" class="btn danger" data-act="mdel">'+ic('trash')+' <span>Delete</span></button>':'')+'<span class="spacer"></span><button type="button" class="btn" data-act="mclose">Cancel</button><button type="submit" class="btn primary">'+esc(o.submit||'Save')+'</button></footer></form></div>';
+ var wrap=document.createElement('div');wrap.innerHTML=h;document.body.appendChild(wrap.firstChild);
+ var first=document.querySelector('#mform input,#mform textarea,#mform select');if(first)first.focus();
+ document.getElementById('mform').addEventListener('submit',function(e){e.preventDefault();var vals={};FORM.fields.forEach(function(f){var els=document.querySelectorAll('#mform [name="'+f.k+'"]');
+   if(f.type==='multi'){vals[f.k]=[].slice.call(els).filter(function(x){return x.checked;}).map(function(x){return x.value;});}
+   else if(f.type==='checkbox'){vals[f.k]=els[0].checked;}else{vals[f.k]=els[0].value.trim();}});
+  var r=FORM.onSave(vals);if(r===false)return;closeForm();markDirty();render();});}
+function closeForm(){var m=document.getElementById('modal');if(m){var f=m.querySelector('form');if(f)f.removeAttribute('id');fadeRemove(m,200);}FORM=null;}
+
+/* ---------- field sets ---------- */
+function groups(){var g=[];S.contacts.forEach(function(c){if(c.group&&g.indexOf(c.group)<0)g.push(c.group);});return g;}
+function areaOpts(withNone){var o=(S.areas||[]).map(function(a){return[a.key,a.label];});if(withNone)o.unshift(['','None (not tied to an area)']);return o;}
+function contactForm(c){var isNew=!c;c=c||{group:ui.cGroup!=='All'?ui.cGroup:'Useful numbers',area:''};
+ openForm({title:isNew?'Add contact':'Edit contact',values:c,fields:[
+  {k:'name',label:'Name',ph:'Leave blank for a role or desk number'},{k:'role',label:'Role'},{k:'dept',label:'Department / organisation'},
+  {k:'phone',label:'Direct dial',type:'tel'},{k:'shift',label:'Shift',ph:'e.g. 04:00-14:00 or 24hrs',hint:'Used for “on shift now”.'},
+  {k:'group',label:'Contact list',list:groups()},{k:'area',label:'Location covered',type:'select',options:areaOpts(true)},
+  {k:'escName',label:'Escalation name'},{k:'escPhone',label:'Escalation number',type:'tel'},{k:'fav',label:'Show in Go Live Key Support on the overview',type:'checkbox'}],
+  onSave:function(v){if(!v.name&&!v.role){toast('Add a name or a role.');return false;}if(isNew){v.id=uid();S.contacts.push(v);}else Object.assign(c,v);},
+  onDelete:isNew?null:function(){S.contacts=S.contacts.filter(function(x){return x!==c;});}});}
+function rosterForm(r,dayId,area){var isNew=!r;r=r||{day:dayId||(S.rosterDays[0]||{}).id,areas:area?[area]:[],team:'BC'};
+ openForm({title:isNew?'Add to roster':'Edit roster entry',values:r,fields:[
+  {k:'name',label:'Name'},{k:'team',label:'Team',type:'select',options:[['BC','BC · Business Change'],['Ops','Ops · Operations'],['OR','OR · Operational Readiness'],['Other','Other']]},
+  {k:'shift',label:'Shift',ph:'05:30-13:30'},{k:'day',label:'Day',type:'select',options:S.rosterDays.map(function(d){return[d.id,fmtDate(d.date)+' · '+d.label];})},
+  {k:'areas',label:'Covering',type:'multi',options:areaOpts(false).filter(function(a){return a[0]!=='lead';})},
+  {k:'phone',label:'Direct dial (optional)',type:'tel'},{k:'note',label:'Note',ph:'e.g. Floating between T4 & P&R4'}],
+  onSave:function(v){if(!v.name){toast('Add a name.');return false;}if(!v.areas.length){toast('Pick at least one location.');return false;}if(isNew){v.id=uid();S.roster.push(v);}else Object.assign(r,v);},
+  onDelete:isNew?null:function(){S.roster=S.roster.filter(function(x){return x!==r;});}});}
+function dayForm(d){var isNew=!d;d=d||{};openForm({title:isNew?'Add roster day':'Edit roster day',values:d,fields:[{k:'date',label:'Date',type:'date'},{k:'label',label:'Label',ph:'Day 4 · MSCP4 closure'}],
+ onSave:function(v){if(!v.date){toast('Pick a date.');return false;}if(isNew){v.id=uid();S.rosterDays.push(v);S.rosterDays.sort(function(a,b){return a.date<b.date?-1:1;});ui.rDay=v.id;}else Object.assign(d,v);},
+ onDelete:isNew?null:function(){S.rosterDays=S.rosterDays.filter(function(x){return x!==d;});S.roster=S.roster.filter(function(x){return x.day!==d.id;});ui.rDay=null;}});}
+function dateForm(e){var isNew=!e;e=e||{type:'Meeting',date:todayISO()};openForm({title:isNew?'Add key date':'Edit key date',values:e,fields:[
+  {k:'title',label:'Title'},{k:'date',label:'Date',type:'date'},{k:'time',label:'Time',ph:'10:00-11:00 (blank for all day)'},
+  {k:'type',label:'Type',type:'select',options:['Meeting','Milestone','Event','Deadline']},{k:'format',label:'Where / format',ph:'Teams meeting'},
+  {k:'attendees',label:'Attendees'},{k:'detail',label:'Details',type:'textarea'}],
+  onSave:function(v){if(!v.title||!v.date){toast('Add a title and date.');return false;}if(isNew){v.id=uid();S.dates.push(v);}else Object.assign(e,v);},
+  onDelete:isNew?null:function(){S.dates=S.dates.filter(function(x){return x!==e;});}});}
+function noticeForm(n){var isNew=!n;n=n||{level:'info',date:todayISO()};openForm({title:isNew?'Add terminal notice':'Edit notice',values:n,fields:[
+  {k:'title',label:'Headline'},{k:'level',label:'Level',type:'select',options:[['info','Info'],['advisory','Advisory'],['critical','Critical']]},
+  {k:'body',label:'Notice',type:'textarea'},{k:'date',label:'From',type:'date'},{k:'until',label:'Until (optional)',type:'date'},
+  {k:'pinned',label:'Pin to the top of the overview',type:'checkbox'}],
+  onSave:function(v){if(!v.title){toast('Add a headline.');return false;}if(isNew){v.id=uid();S.notices.unshift(v);}else Object.assign(n,v);},
+  onDelete:isNew?null:function(){S.notices=S.notices.filter(function(x){return x!==n;});}});}
+function projectForm(){var p=S.project;openForm({title:'Project details',values:p,fields:[
+  {k:'name',label:'Project name'},{k:'ref',label:'Project reference'},{k:'pack',label:'Pack title'},{k:'programme',label:'Programme'},
+  {k:'goLive',label:'Go-live date',type:'date'},{k:'owner',label:'Pack owner'},{k:'version',label:'Version'},{k:'classification',label:'Classification'},
+  {k:'videoUrl',label:'“Watch a short video” link',type:'url',ph:'https://'},{k:'feedbackUrl',label:'Feedback form link (optional)',type:'url',ph:'https://'},{k:'intro',label:'Introduction',type:'textarea'}],
+  onSave:function(v){Object.assign(p,v);}});}
+function journeyForm(j){var isNew=!j;j=j||{section:'Departing'};openForm({title:isNew?'Add journey card':'Edit journey card',values:j,fields:[
+  {k:'section',label:'Section',type:'select',options:['Departing','Arriving','Passenger support']},{k:'title',label:'Title'},
+  {k:'body',label:'Text',type:'textarea',hint:'Start a line with "- " for a bullet or "1. " for a step.'},{k:'highlight',label:'Highlight strip (optional)'}],
+  onSave:function(v){if(!v.title){toast('Add a title.');return false;}if(isNew){v.id=uid();S.journeys.push(v);}else Object.assign(j,v);},
+  onDelete:isNew?null:function(){S.journeys=S.journeys.filter(function(x){return x!==j;});}});}
+function chargesForm(){openForm({title:'Priority Pick-Up charges',values:{t:S.charges.map(function(c){return c.price+' | '+c.label;}).join('\n')},fields:[{k:'t',label:'One charge per line: price | duration',type:'textarea',code:true}],
+ onSave:function(v){S.charges=v.t.split('\n').map(function(l){var p=l.split('|');return p[0].trim()?{id:uid(),price:p[0].trim(),label:(p[1]||'').trim()}:null;}).filter(Boolean);}});}
+function signsForm(){openForm({title:'Signage',values:{t:S.signs.map(function(s){return [s.arrow,s.text,s.sub,s.tone].join(' | ');}).join('\n'),v:S.vms},fields:[
+  {k:'t',label:'Sign panels: arrow | text | small text | colour (yellow, dark, violet, plum)',type:'textarea',code:true},{k:'v',label:'VMS message',type:'textarea',code:true}],
+ onSave:function(v){S.signs=v.t.split('\n').map(function(l){var p=l.split('|').map(function(x){return x.trim();});return p[1]?{id:uid(),arrow:p[0],text:p[1],sub:p[2]||'',tone:p[3]||'yellow'}:null;}).filter(Boolean);S.vms=v.v;}});}
+function partnerForm(p){var isNew=!p;p=p||{};openForm({title:isNew?'Add partner':'Edit partner',values:p,fields:[
+  {k:'name',label:'Name'},{k:'url',label:'Infographic / info link',type:'url',ph:'https://'},{k:'desc',label:'What they cover',type:'textarea'},
+  {k:'match',label:'Match contacts containing',hint:'Contacts whose role or department contain this text are listed on the card.'}],
+  onSave:function(v){if(!v.name){toast('Add a name.');return false;}if(isNew){v.id=uid();S.partners.push(v);}else Object.assign(p,v);},
+  onDelete:isNew?null:function(){S.partners=S.partners.filter(function(x){return x!==p;});}});}
+function imageForm(im){openForm({title:'Image details',values:im,fields:[{k:'title',label:'Title'},{k:'category',label:'Category',list:['Maps','Signage','Other']},{k:'caption',label:'Caption / legend notes',type:'textarea'}],
+ onSave:function(v){Object.assign(im,v);},onDelete:function(){S.images=S.images.filter(function(x){return x!==im;});}});}
+function pinfoForm(x){var isNew=!x;x=x||{};openForm({title:isNew?'Add project information':'Edit project information',values:x,fields:[{k:'title',label:'Heading'},{k:'body',label:'Details',type:'textarea'}],
+ onSave:function(v){if(!v.title){toast('Add a heading.');return false;}if(!S.projectInfo)S.projectInfo=[];if(isNew){v.id=uid();S.projectInfo.push(v);}else Object.assign(x,v);},onDelete:isNew?null:function(){S.projectInfo=S.projectInfo.filter(function(y){return y!==x;});}});}
+function todoForm(t){var isNew=!t;t=t||{};openForm({title:isNew?'Add to-do':'Edit to-do',values:t,fields:[{k:'text',label:'Item'},{k:'done',label:'Done',type:'checkbox'}],
+ onSave:function(v){if(!v.text)return false;if(isNew){v.id=uid();S.todo.push(v);}else Object.assign(t,v);},onDelete:isNew?null:function(){S.todo=S.todo.filter(function(x){return x!==t;});}});}
+function forecastForm(i){var F=S.forecast,d=F.days[i];openForm({title:'Forecast · '+d.label,values:{label:d.label,date:d.date,is:d.immigration.start,iv:d.immigration.values.join(', '),cs:d.checkin.start,cv:d.checkin.values.join(', '),amber:F.amber,red:F.red},fields:[
+  {k:'label',label:'Tab label'},{k:'date',label:'Date',type:'date'},
+  {k:'is',label:'Immigration · first hour (0–23)',type:'number'},{k:'iv',label:'Immigration · hourly passengers, comma separated',type:'textarea',code:true},
+  {k:'cs',label:'Check-in · first hour (0–23)',type:'number'},{k:'cv',label:'Check-in · hourly passengers, comma separated',type:'textarea',code:true},
+  {k:'amber',label:'Amber from (pax/hour)',type:'number'},{k:'red',label:'Red from (pax/hour)',type:'number'}],
+ onSave:function(v){function nums(s){return s.split(/[,\s]+/).filter(Boolean).map(Number).filter(function(n){return !isNaN(n);});}
+  d.label=v.label;d.date=v.date;d.immigration={start:+v.is||0,values:nums(v.iv)};d.checkin={start:+v.cs||0,values:nums(v.cv)};F.amber=+v.amber||F.amber;F.red=+v.red||F.red;},
+ onDelete:F.days.length>1?function(){F.days.splice(i,1);ui.fDay=0;}:null});}
+function surfaceForm(){var A=S.surface;var csv=['Mode,'+A.months.join(',')].concat(A.rows.map(function(r){return '"'+r.mode.replace(/"/g,"'")+'"'+(r.verify?'*':'')+','+r.vals.map(function(v){return v==null?'':v;}).join(',');})).join('\n');
+ openForm({title:'Surface access profile',values:{csv:csv,t:A.tiles.map(function(t){return t.label+' | '+t.value+(t.verify?' | check':'');}).join('\n')},fields:[
+  {k:'csv',label:'Table (CSV). First row is months. Add * after a mode name to flag it for checking.',type:'textarea',code:true},
+  {k:'t',label:'Headline figures: label | value | check (optional)',type:'textarea',code:true}],
+ onSave:function(v){var rows=v.csv.split('\n').filter(function(l){return l.trim();});if(rows.length<2){toast('Add at least a header row and one mode.');return false;}
+  function cells(l){var out=[],cur='',q=false;for(var i=0;i<l.length;i++){var ch=l[i];if(ch==='"'){q=!q;continue;}if(ch===','&&!q){out.push(cur);cur='';continue;}cur+=ch;}out.push(cur);return out.map(function(x){return x.trim();});}
+  var head=cells(rows[0]);A.months=head.slice(1);
+  A.rows=rows.slice(1).map(function(l){var c=cells(l),m=c[0],ver=/\*$/.test(m);return{mode:m.replace(/\*$/,'').trim(),verify:ver,vals:c.slice(1,A.months.length+1).map(function(x){return x===''?null:parseFloat(x);})};});
+  A.tiles=v.t.split('\n').map(function(l){var p=l.split('|').map(function(x){return x.trim();});return p[0]?{label:p[0],value:p[1]||'',verify:/check/i.test(p[2]||'')}:null;}).filter(Boolean);}});}
+
+/* ---------- images ---------- */
+function readImage(file){return new Promise(function(res,rej){
+ if(!file||!/^image\//.test(file.type)){rej(new Error('Not an image'));return;}
+ var fr=new FileReader();fr.onerror=function(){rej(fr.error);};
+ fr.onload=function(){var url=fr.result;if(file.type==='image/svg+xml'||file.size<350000){res(url);return;}
+  var img=new Image();img.onload=function(){var max=2200,w=img.naturalWidth,h=img.naturalHeight,s=Math.min(1,max/Math.max(w,h));var c=document.createElement('canvas');c.width=Math.round(w*s);c.height=Math.round(h*s);var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.86));};img.onerror=function(){res(url);};img.src=url;};
+ fr.readAsDataURL(file);});}
+function addFiles(files,replaceIm){files=[].slice.call(files||[]).filter(function(f){return /^image\//.test(f.type);});if(!files.length){toast('Choose an image file (JPG, PNG or SVG).');return;}
+ Promise.all(files.map(readImage)).then(function(urls){
+  if(replaceIm){replaceIm.src=urls[0];toast('Image replaced. Press Save to keep it.');}
+  else{urls.forEach(function(u,i){S.images.push({id:uid(),title:files[i].name.replace(/\.[^.]+$/,''),category:ui.imgCat!=='All'?ui.imgCat:'Maps',caption:'',src:u});});toast(urls.length+' image'+(urls.length>1?'s':'')+' added. Press Save to keep '+(urls.length>1?'them':'it')+'.');}
+  markDirty();render();}).catch(function(e){toast('Couldn’t read that image: '+e.message);});}
+var pickTarget=null;
+function pickFile(target){pickTarget=target||null;var inp=document.getElementById('filepick');if(!inp){inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.id='filepick';inp.hidden=true;document.body.appendChild(inp);inp.addEventListener('change',function(){addFiles(inp.files,pickTarget);inp.value='';});}
+ inp.multiple=!target;inp.click();}
+var LB={im:null,z:1};
+function openLB(im){LB.im=im;LB.z=1;var el=document.createElement('div');el.className='lb';el.id='lb';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');
+ el.innerHTML='<div class="lb-bar"><h4>'+esc(im.title)+'</h4><button class="iconbtn" data-act="lbz" data-v="-1" aria-label="Zoom out">'+ic('zout')+'</button><button class="iconbtn" data-act="lbz" data-v="0" aria-label="Fit to screen">'+ic('fit')+'</button><button class="iconbtn" data-act="lbz" data-v="1" aria-label="Zoom in">'+ic('zin')+'</button><button class="iconbtn" data-act="lbclose" aria-label="Close">'+ic('x')+'</button></div><div class="lb-view" id="lbv"><img id="lbimg" alt="'+esc(im.title)+'" src="'+im.src+'" draggable="false"></div><div class="lb-hint">Pinch or double-tap to zoom · drag to move</div>';
+ document.body.appendChild(el);var img=document.getElementById('lbimg');img.onload=sizeLB;sizeLB();
+ var v=document.getElementById('lbv'),P={},d0=0,z0=1,lastTap=0,moved=false;
+ function pts(){return Object.keys(P).map(function(k){return P[k];});}
+ function dist(){var p=pts();return Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);}
+ v.addEventListener('pointerdown',function(e){P[e.pointerId]={x:e.clientX,y:e.clientY};moved=false;try{v.setPointerCapture(e.pointerId);}catch(err){}if(pts().length===2){d0=dist();z0=LB.z;}});
+ v.addEventListener('pointermove',function(e){var o=P[e.pointerId];if(!o)return;var n={x:e.clientX,y:e.clientY};
+  if(pts().length===2){P[e.pointerId]=n;if(d0)zoomLB(z0*dist()/d0);moved=true;return;}
+  var dx=n.x-o.x,dy=n.y-o.y;if(Math.abs(dx)+Math.abs(dy)>2)moved=true;v.scrollLeft-=dx;v.scrollTop-=dy;P[e.pointerId]=n;});
+ function up(e){var was=pts().length;delete P[e.pointerId];if(pts().length<2)d0=0;
+  if(e.type==='pointerup'&&was===1&&!moved){var t=Date.now();if(t-lastTap<320){zoomLB(LB.z>1.05?1:2.5);lastTap=0;}else lastTap=t;}}
+ v.addEventListener('pointerup',up);v.addEventListener('pointercancel',up);
+ v.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey){e.preventDefault();zoomLB(LB.z*(e.deltaY<0?1.15:1/1.15));}},{passive:false});}
+function zoomLB(z){var v=document.getElementById('lbv');if(!v)return;var cx=(v.scrollLeft+v.clientWidth/2)/Math.max(v.scrollWidth,1),cy=(v.scrollTop+v.clientHeight/2)/Math.max(v.scrollHeight,1);LB.z=Math.max(1,Math.min(6,z));sizeLB();v.scrollLeft=cx*v.scrollWidth-v.clientWidth/2;v.scrollTop=cy*v.scrollHeight-v.clientHeight/2;}
+function sizeLB(){var img=document.getElementById('lbimg'),v=document.getElementById('lbv');if(!img||!v||!img.naturalWidth)return;var fit=Math.min(v.clientWidth/img.naturalWidth,v.clientHeight/img.naturalHeight,1);img.style.width=Math.round(img.naturalWidth*fit*LB.z)+'px';var ih=img.naturalHeight*fit*LB.z;img.style.marginTop=Math.max(0,(v.clientHeight-ih)/2)+'px';}
+
+/* ---------- top & nav ---------- */
+function statusHtml(){
+ if(saving)return '<span class="status"><span class="dot warn"></span><span class="lbl">Saving…</span></span>';
+ if(dirty)return '<span class="status"><span class="dot warn"></span><span class="lbl">Unsaved changes</span></span>';
+ if(deviceSaved)return '<span class="status" title="Saved in this browser only"><span class="dot"></span><span class="lbl">Saved on this device</span></span>';
+ if(!artChecked)return '<span class="status"><span class="dot"></span><span class="lbl">Loading…</span></span>';
+ return '<span class="status"><span class="dot ok"></span><span class="lbl">'+(S.savedAt?'Saved '+new Date(S.savedAt).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'Up to date')+'</span></span>';}
+function renderTop(){var t=document.getElementById('top');if(!t)return;var p=S.project;
+ t.innerHTML='<div class="top-in"><div class="badge-t4" aria-hidden="true">T4<br>FD&amp;CP</div><div class="top-title"><h1>'+esc(p.name||p.pack||'Transition Support Pack')+'</h1><div class="sub">'+(p.ref?'<span class="ref">'+esc(p.ref)+'</span>':'<span class="ref empty">No project ref</span>')+'<span class="prog">'+esc(p.programme||'')+'</span></div></div>'+
+ '<div class="top-actions">'+statusHtml()+(COMMENTS?'<button class="btn" data-act="feedback" title="Leave a comment on this page">'+ic('bell')+'<span class="lbl">Feedback</span></button>':'')+'<button class="btn'+(editing?' on':'')+'" data-act="edit-toggle" aria-pressed="'+editing+'">'+ic('edit')+'<span class="lbl">'+(editing?'Done':'Edit')+'</span></button>'+
+ '<button class="btn primary" data-act="save"'+(dirty&&!saving?'':' disabled')+'>'+ic('save')+'<span class="lbl">Save</span></button></div></div>';
+ try{document.documentElement.style.setProperty('--toph',t.offsetHeight+'px');}catch(e){}
+ var sb=document.getElementById('savebar');if(sb){var show=dirty||saving;sb.hidden=!show;sb.innerHTML=show?'<span class="dot warn"></span><span style="flex:1">'+(saving?'Saving…':'You have unsaved changes')+'</span><button class="btn primary" data-act="save"'+(saving?' disabled':'')+'>'+ic('save')+' Save</button>':'';}}
+function navHtml(){var counts={contacts:S.contacts.length,notices:S.notices.length,maps:S.images.length,dates:S.dates.length};
+ return VIEWS.map(function(v){return '<a href="#'+v[0]+'" data-act="nav" data-v="'+v[0]+'"'+(ui.view===v[0]?' aria-current="page"':'')+'>'+ic(v[2])+'<span>'+v[1]+'</span>'+(counts[v[0]]!=null?'<span class="count">'+counts[v[0]]+'</span>':'')+'</a>';}).join('');}
+function render(){
+ var app=document.getElementById('app');
+ if(!document.getElementById('top')){app.innerHTML='<header class="top" id="top"></header><div class="shell"><nav class="rail" id="rail" aria-label="Sections"></nav><main id="main"></main></div><div class="savebar" id="savebar" hidden></div><nav class="tabbar" id="tabbar" aria-label="Main sections"></nav>';}
+ app.classList.toggle('editing',editing);
+ renderTop();document.getElementById('rail').innerHTML=navHtml();document.getElementById('tabbar').innerHTML=tabHtml();
+ var m=document.getElementById('main');var fn=V[ui.view]||V.overview;var entering=ui.view!==lastView;lastView=ui.view;m.innerHTML='<div class="wrap'+(entering?' enter':'')+'">'+draftBanner()+fn()+'</div>';
+ if(ui.view==='whos-on')startClock();else stopClock();}
+var TABS=[['overview','Home','home'],['contacts','Contacts','phone'],['whos-on','Who’s on','clock'],['roster','Roster','grid']];
+function tabHtml(){var inMain=TABS.some(function(t){return t[0]===ui.view;});
+ return TABS.map(function(t){return '<a href="#'+t[0]+'" data-act="nav" data-v="'+t[0]+'"'+(ui.view===t[0]?' aria-current="page"':'')+'>'+ic(t[2])+'<span>'+t[1]+'</span></a>';}).join('')+
+ '<button type="button" data-act="more"'+(inMain?'':' aria-current="page"')+' aria-haspopup="dialog">'+'<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span>'+(inMain?'More':({dates:'Dates',notices:'Notices',journeys:'Journeys',data:'Data',maps:'Maps',partners:'Partners'}[ui.view]||'More'))+'</span></button>';}
+function openSheet(){closeSheet(true);var counts={notices:activeNotices().length,maps:S.images.length,dates:S.dates.length};var main=TABS.map(function(t){return t[0];});
+ var bg=document.createElement('div');bg.className='sheet-bg';bg.id='sheetbg';bg.setAttribute('data-act','sheet-close');
+ var sh=document.createElement('div');sh.className='sheet';sh.id='sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','More sections');
+ sh.innerHTML='<div class="grab"></div>'+VIEWS.filter(function(v){return main.indexOf(v[0])<0;}).map(function(v){return '<a href="#'+v[0]+'" data-act="nav" data-v="'+v[0]+'"'+(ui.view===v[0]?' aria-current="page"':'')+'>'+ic(v[2])+'<span>'+v[1]+'</span>'+(counts[v[0]]!=null?'<span class="count">'+counts[v[0]]+'</span>':'')+'</a>';}).join('');
+ document.body.appendChild(bg);document.body.appendChild(sh);}
+var lastView=null;
+function reduced(){try{return window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return true;}}
+function fadeRemove(el,ms){if(!el)return;if(reduced()){el.remove();return;}el.removeAttribute('id');el.classList.add('closing');setTimeout(function(){el.remove();},ms||200);}
+function closeSheet(now){['sheet','sheetbg'].forEach(function(i){var e=document.getElementById(i);if(!e)return;if(now)e.remove();else fadeRemove(e,210);});}
+window.addEventListener('scroll',function(){var t=document.getElementById('top');if(t)t.classList.toggle('scrolled',window.scrollY>4);},{passive:true});
+document.addEventListener('toggle',function(e){if(e.target&&e.target.id==='aboutd'){ui.aboutOpen=e.target.open;}},true);
+function draftBanner(){if(!pendingDraft||!ART)return '';return '<div class="banner">'+ic('save')+'<span>You have changes on this device from '+new Date(pendingDraft.at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' that were never saved.</span><span class="spacer"></span><button class="btn sm" data-act="draft-restore">Restore them</button><button class="btn sm ghost" data-act="draft-discard">Discard</button></div>';}
+function phead(title,sub,actions){return '<div class="phead"><div><h2>'+esc(title)+'</h2>'+(sub?'<p>'+sub+'</p>':'')+'</div>'+(actions?'<div class="row">'+actions+'</div>':'')+'</div>';}
+function editBtn(act,id,label){return '<button class="iconbtn edit-only" data-act="'+act+'" data-id="'+esc(id)+'" aria-label="'+esc(label||'Edit')+'" title="'+esc(label||'Edit')+'">'+ic('edit')+'</button>';}
+
+/* ---------- views ---------- */
+var V={};
+V.overview=function(){var p=S.project,dd=dayDiff(p.goLive);
+ var liveTxt=dd==null?'':(dd>0?'<span class="big">'+dd+'</span><span>day'+(dd===1?'':'s')+' to go-live</span>':dd===0?'<span class="big">Today</span><span>Go-live day</span>':'<span class="big">'+(-dd)+'</span><span>days since go-live</span>');
+ function f(k,l){return p[k]?'<div><dt>'+l+'</dt><dd>'+esc(k==='goLive'?fmtDate(p[k]):p[k])+'</dd></div>':'';}
+ var setup=(!p.name||!p.ref)?'<button class="setup" data-act="proj-edit">'+ic('plus')+'<span>Add '+(!p.name&&!p.ref?'project name and reference':!p.name?'project name':'project reference')+'</span></button>':'';
+ var paras=String(p.intro||'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
+ var about=paras.length?'<section class="card about-card ov-about"><div class="row" style="justify-content:space-between"><span class="eyebrow">About this pack</span>'+editBtn('proj-edit','about','Edit introduction')+'</div><p class="lead">'+esc(paras[0])+'</p>'+(paras.length>1?'<details'+(ui.aboutOpen?' open':'')+' id="aboutd"><summary><span class="rm">Read more</span><span class="rl">Show less</span></summary><div class="more">'+paras.slice(1).map(function(x){return '<p>'+esc(x)+'</p>';}).join('')+'</div></details>':'')+'</section>':'';
+ var h='<div class="hero"><section class="proj ov-proj"><div class="eyebrow">'+esc(p.programme||'')+'</div><h2>'+esc(p.pack||'Transition Support Pack')+'</h2><dl>'+f('name','Project name')+f('ref','Project reference')+f('goLive','Go-live')+f('owner','Owner')+f('version','Version')+f('classification','Classification')+'</dl>'+setup+'<div class="row"><button class="btn sm" data-act="proj-edit">'+ic('edit')+' Edit project details</button>'+(p.videoUrl?'<a class="btn sm" href="'+esc(p.videoUrl)+'" target="_blank" rel="noopener">'+ic('link')+' Watch the video</a>':'')+(p.feedbackUrl?'<a class="btn sm" href="'+esc(p.feedbackUrl)+'" target="_blank" rel="noopener">'+ic('edit')+' Give feedback</a>':'')+'</div></section>';
+ var up=S.dates.slice().sort(sortDates).filter(function(e){return dayDiff(e.date)>=0;}).slice(0,3);var recent=!up.length;if(recent)up=S.dates.slice().sort(sortDates).slice(-3).reverse();
+ h+='<section class="card sec ov-dates"><div class="live">'+liveTxt+'</div><div class="eyebrow">'+(recent?'Most recent key dates':'Coming up')+'</div><div class="tl">'+up.map(function(e){return '<div class="row" style="justify-content:space-between;gap:10px"><div style="min-width:0"><b style="font-size:14px">'+esc(e.title)+'</b><div class="muted" style="font-size:12.5px">'+fmtDate(e.date,true)+(e.time?' · '+esc(fmtShift(e.time)):'')+'</div></div><span class="type '+esc(e.type)+'">'+esc(e.type)+'</span></div>';}).join('')+'</div><a href="#dates" data-act="nav" data-v="dates" style="font-size:13.5px;font-weight:600">All key dates →</a></section></div>';
+ if(!S.projectInfo)S.projectInfo=[];
+ if(S.projectInfo.length||editing)h+='<section class="card sec ov-info"><h3>'+ic('clipboard')+'Project information<span class="spacer"></span><button class="btn sm edit-only" data-act="pinfo-add">'+ic('plus')+' Add</button></h3>'+(S.projectInfo.length?'<div class="pinfo">'+S.projectInfo.map(function(x){return '<div class="pi"><div style="min-width:0"><b>'+esc(x.title)+'</b><p>'+linkify(x.body)+'</p></div>'+editBtn('pinfo-edit',x.id,'Edit')+'</div>';}).join('')+'</div>':'<div class="empty-note">Add project-specific details such as charges, access changes or contacts.</div>')+'</section>';
+ h+=about;
+ var act=activeNotices();
+ h+='<section class="sec ov-notices"><h3>'+ic('bell')+' Terminal notices<span class="spacer"></span><button class="btn sm" data-act="notice-add">'+ic('plus')+' Add notice</button></h3>'+(act.length?act.slice(0,4).map(noticeHtml).join(''):'<div class="empty-note">No active notices. Add one when something changes at T4.</div>')+(act.length>4?'<a href="#notices" data-act="nav" data-v="notices">See all '+act.length+' notices →</a>':'')+'</section>';
+ var fav=S.contacts.filter(function(c){return c.fav&&digits(c.phone);});
+ h+='<section class="sec ov-quick"><h3>'+ic('phone')+' Go Live Key Support</h3><div class="quick">'+fav.map(function(c){return '<a class="qd" href="tel:'+esc(dialOf(c.phone))+'"><span class="r">'+esc(c.role||c.name)+'</span><span class="muted" style="font-size:12px">'+esc(c.dept||c.group)+'</span><span class="n">'+esc(fmtPhone(c.phone))+'</span></a>';}).join('')+'</div><p class="muted" style="margin:0;font-size:12.5px">Add any contact here from Edit mode. If tapping a number doesn’t start a call on your device, use the copy button on the Contacts page.</p></section>';
+ h+='<div class="grid2 ov-more"><section class="card sec"><h3>Things to try<span class="spacer"></span><button class="btn sm edit-only" data-act="todo-add">'+ic('plus')+' Add</button></h3><div class="todo">'+S.todo.map(function(t){return '<div class="row" style="flex-wrap:nowrap"><label style="flex:1"><input type="checkbox" data-act="todo-tick" data-id="'+t.id+'"'+(t.done?' checked':'')+'><span class="'+(t.done?'done':'')+'">'+esc(t.text)+'</span></label>'+editBtn('todo-edit',t.id)+'</div>';}).join('')+'</div></section></div>';
+ return h;};
+function sortDates(a,b){var x=(a.date||'')+(a.time||'00'),y=(b.date||'')+(b.time||'00');return x<y?-1:x>y?1:0;}
+function activeNotices(){var t=todayISO();return S.notices.filter(function(n){return !n.until||n.until>=t;}).sort(function(a,b){if(!!b.pinned!==!!a.pinned)return b.pinned?1:-1;var L={critical:0,advisory:1,info:2};if(L[a.level]!==L[b.level])return L[a.level]-L[b.level];return (b.date||'')<(a.date||'')?-1:1;});}
+function noticeHtml(n){var t=todayISO(),exp=n.until&&n.until<t;return '<article class="notice '+esc(n.level)+'"'+(exp?' style="opacity:.6"':'')+'><span class="bar"></span><div style="min-width:0"><h4><span class="lvl '+esc(n.level)+'">'+esc(n.level)+'</span>'+esc(n.title)+(n.pinned?' <span class="pill">Pinned</span>':'')+'</h4><p>'+linkify(n.body)+'</p><div class="muted" style="font-size:12px;margin-top:6px">'+(n.date?'From '+fmtDate(n.date):'')+(n.until?' until '+fmtDate(n.until):'')+(exp?' · expired':'')+'</div></div><div><button class="iconbtn" data-act="notice-edit" data-id="'+n.id+'" aria-label="Edit notice">'+ic('edit')+'</button></div></article>';}
+V.notices=function(){var t=todayISO();var act=activeNotices(),old=S.notices.filter(function(n){return n.until&&n.until<t;});
+ return phead('Terminal notices','Live operational notices for T4. Anyone with edit access can add or update them; press Save to publish.','<button class="btn primary" data-act="notice-add">'+ic('plus')+' Add notice</button>')+
+ '<section class="sec">'+(act.length?act.map(noticeHtml).join(''):'<div class="empty-note">No active notices.</div>')+'</section>'+(old.length?'<section class="sec"><h3>Expired</h3>'+old.map(noticeHtml).join('')+'</section>':'');};
+
+V.contacts=function(){var gs=groups();var chips=['All'].concat(gs).map(function(g){var n=g==='All'?S.contacts.length:S.contacts.filter(function(c){return c.group===g;}).length;return '<button class="chip" data-act="cgroup" data-v="'+esc(g)+'" aria-pressed="'+(ui.cGroup===g)+'">'+esc(g)+'<span class="c">'+n+'</span></button>';}).join('');
+ return phead('Contacts','Direct dials for the day, grouped as in the pack. Escalation numbers sit under each person.','<button class="btn edit-only" data-act="contact-add">'+ic('plus')+' Add contact</button>')+
+ '<div class="cbar"><div class="toolbar"><label class="search">'+ic('search')+'<input type="search" id="csearch" placeholder="Search name, role or number" value="'+esc(ui.cQuery)+'" aria-label="Search contacts"></label></div><div class="chips scroll"><button class="chip" data-act="conow" aria-pressed="'+ui.cOnNow+'">On shift now</button>'+chips+'</div></div><div id="clist" class="sec">'+contactList()+'</div>';};
+function contactList(){var q=ui.cQuery.toLowerCase().trim(),qd=digits(q),m=nowMin();
+ var list=S.contacts.filter(function(c){if(ui.cGroup!=='All'&&c.group!==ui.cGroup)return false;if(ui.cOnNow&&onAt(c.shift,m)!==true)return false;if(!q)return true;
+  var hay=[c.name,c.role,c.dept,c.group,c.escName,areaLabel(c.area)].join(' ').toLowerCase();return hay.indexOf(q)>=0||(qd.length>=3&&(digits(c.phone).indexOf(qd)>=0||digits(c.escPhone).indexOf(qd)>=0));});
+ if(!list.length)return '<div class="empty-note">No contacts match'+(ui.cOnNow?' who are on shift now':'')+'.</div>';
+ var by={};list.forEach(function(c){(by[c.group]=by[c.group]||[]).push(c);});
+ return Object.keys(by).map(function(g){return '<div class="cgroup"><h3>'+esc(g)+'<span class="muted mono" style="font-weight:500">'+by[g].length+'</span></h3>'+by[g].map(contactHtml).join('')+'</div>';}).join('');}
+function contactHtml(c){var on=onAt(c.shift,nowMin());var title=c.name||c.role;var sub=c.name?[c.role,c.dept].filter(Boolean).join(' · '):c.dept;
+ return '<article class="ct"><div style="min-width:0"><div class="ct-name">'+esc(title)+'</div><div class="ct-role">'+esc(sub)+'</div><div class="ct-meta">'+(c.shift?'<span class="pill'+(on?' on':'')+'">'+(on?'<span class="dot ok"></span>On now · ':'')+esc(fmtShift(c.shift))+'</span>':'')+(c.area&&c.area!=='lead'?'<span class="loc">'+esc(areaLabel(c.area))+'</span>':'')+'</div>'+
+ (digits(c.phone)?'<div class="ct-num">'+tel(c.phone)+copyBtn(c.phone)+'</div>':'')+
+ (c.escPhone||c.escName?'<div class="ct-esc">Escalate to '+esc(c.escName||'')+' '+tel(c.escPhone)+'</div>':'')+'</div>'+
+ '<div class="dialbox">'+(digits(c.phone)?'<a class="dial" href="tel:'+esc(dialOf(c.phone))+'" aria-label="Call '+esc(title)+' on '+esc(fmtPhone(c.phone))+'">'+ic('phone')+'<span class="dn">'+esc(fmtPhone(c.phone))+'</span></a>':'<span class="nophone">No direct dial</span>')+copyBtn(c.phone)+editBtn('contact-edit',c.id,'Edit contact')+'</div></article>';}
+
+var clockT=null;
+function startClock(){stopClock();clockT=setInterval(function(){if(ui.wTime==null&&ui.view==='whos-on'){var c=document.getElementById('wclock');if(c){var t=hm(nowMin());if(c.textContent!==t){render();}}}},20000);}
+function stopClock(){if(clockT){clearInterval(clockT);clockT=null;}}
+V['whos-on']=function(){var days=S.rosterDays;var t=todayISO();
+ if(ui.wDay==null){var td=days.find(function(d){return d.date===t;});ui.wDay=td?td.id:(days[0]&&days[0].id)||'';}
+ var m=ui.wTime==null?nowMin():ui.wTime;var day=days.find(function(d){return d.id===ui.wDay;});
+ var h=phead('Who’s on','Who is covering each location at a given time, from the roster and the on-the-day contact lists.','');
+ h+='<div class="card timebar"><div class="tb-clock"><div class="eyebrow">Showing</div><div class="clock" id="wclock">'+hm(m)+'</div></div><span class="spacer"></span><label class="row tb-day"><span>Roster day</span><select id="wday" aria-label="Roster day">'+days.map(function(d){return '<option value="'+d.id+'"'+(d.id===ui.wDay?' selected':'')+'>'+fmtDate(d.date)+' · '+esc(d.label)+'</option>';}).join('')+'</select></label><label class="row tb-time"><span>Time</span><input type="time" id="wtime" value="'+hm(m)+'" aria-label="Time"></label><button class="btn sm" data-act="wnow"'+(ui.wTime==null?' disabled':'')+'>Now</button></div>';
+ h+='<div class="areas">'+S.areas.map(function(a){
+  var rs=S.roster.filter(function(r){return r.day===ui.wDay&&(r.areas||[]).indexOf(a.key)>=0&&onAt(r.shift,m)===true;});
+  var cs=S.contacts.filter(function(c){return c.area===a.key&&onAt(c.shift,m)===true&&c.shift!=='24hrs';});
+  var seen={};cs=cs.filter(function(c){var k=(c.name||c.role)+c.phone;if(seen[k])return false;seen[k]=1;return true;});
+  var rows=rs.map(function(r){return '<div class="p"><div style="min-width:0"><div class="nm"><span class="team '+esc(r.team)+'">'+esc(r.team)+'</span>'+esc(r.name)+'</div><div class="dt">'+esc(fmtShift(r.shift))+(r.note?' · '+esc(r.note):'')+'</div></div>'+(digits(r.phone)?tel(r.phone,'num'):'')+'</div>';}).join('')+
+   cs.map(function(c){return '<div class="p"><div style="min-width:0"><div class="nm">'+esc(c.name||c.role)+'</div><div class="dt">'+esc(c.name?c.role:c.dept)+' · '+esc(fmtShift(c.shift))+'</div></div>'+(digits(c.phone)?tel(c.phone,'num'):'')+'</div>';}).join('');
+  var n=rs.length+cs.length;
+  return '<section class="area"><div class="area-h"><div class="t"><h3>'+esc(a.label)+'</h3><span class="pill'+(n?' on':'')+'">'+n+' on</span></div><div class="s">'+esc(a.sub||'')+'</div></div><div class="ppl">'+(rows||'<div class="p"><span class="muted" style="font-size:13.5px">No one rostered or on shift at '+hm(m)+(day?' on '+fmtDate(day.date):'')+'.</span></div>')+'</div></section>';}).join('')+'</div>';
+ var desks=S.contacts.filter(function(c){return /24\s*h/i.test(c.shift||'');});
+ if(desks.length)h+='<section class="sec"><h3>Always staffed</h3><div class="quick">'+desks.map(function(c){return '<a class="qd" href="tel:'+esc(dialOf(c.phone))+'"><span class="r">'+esc(c.role)+'</span><span class="muted" style="font-size:12px">24 hrs · '+esc(c.dept)+'</span><span class="n">'+esc(fmtPhone(c.phone))+'</span></a>';}).join('')+'</div></section>';
+ return h;};
+
+V.roster=function(){var days=S.rosterDays;if(!days.find(function(d){return d.id===ui.rDay;}))ui.rDay=days[0]?days[0].id:null;var day=days.find(function(d){return d.id===ui.rDay;});
+ var h=phead('OR / BC project roster','Business Change, Operations and Operational Readiness cover by location for each closure day.','<button class="btn edit-only" data-act="rday-add">'+ic('plus')+' Add day</button><button class="btn edit-only" data-act="roster-add">'+ic('plus')+' Add person</button>');
+ h+='<div class="daytabs">'+days.map(function(d){return '<button class="daytab" data-act="rday" data-v="'+d.id+'" aria-pressed="'+(d.id===ui.rDay)+'"><b>'+fmtDate(d.date,true)+'</b><span>'+esc(d.label)+'</span></button>';}).join('')+(day?'<button class="btn sm edit-only" data-act="rday-edit" data-id="'+day.id+'" style="align-self:center">'+ic('edit')+' Edit day</button>':'')+'</div>';
+ if(!day)return h+'<div class="empty-note">No roster days yet. Switch on Edit and add one.</div>';
+ var es=S.roster.filter(function(r){return r.day===day.id;});
+ var shifts=[];es.forEach(function(r){var s=fmtShift(r.shift);if(shifts.indexOf(s)<0)shifts.push(s);});
+ shifts.sort(function(a,b){var x=parseShift(a)||[0,0],y=parseShift(b)||[0,0];return x[0]-y[0]||x[1]-y[1];});
+ var rows=S.areas.filter(function(a){return a.key!=='lead';});
+ h+='<div class="legend"><span><span class="team BC">BC</span> Business Change</span><span><span class="team Ops">Ops</span> Operations</span><span><span class="team OR">OR</span> Operational Readiness</span><span>H2H = hand to hand</span></div>';
+ if(!es.length)return h+'<div class="empty-note">Nobody rostered on this day yet.</div>';
+ h+='<div class="rlist">'+rows.map(function(a){var blocks=shifts.map(function(s){var ppl=es.filter(function(r){return fmtShift(r.shift)===s&&(r.areas||[]).indexOf(a.key)>=0;});if(!ppl.length)return '';
+   return '<div class="rl-shift"><div class="tm">'+esc(s.replace('–','–\n'))+'</div><div class="rc">'+ppl.map(function(r){var shared=(r.areas||[]).length>1;return '<div class="rp" '+(editing?'role="button" tabindex="0" data-act="roster-edit" data-id="'+r.id+'"':'')+'><span class="top-l"><span class="team '+esc(r.team)+'">'+esc(r.team)+'</span>'+esc(r.name)+(shared?' <span class="shared" title="Also covers '+esc(r.areas.filter(function(k){return k!==a.key;}).map(areaLabel).join(', '))+'">Shared</span>':'')+'</span>'+(r.note?'<span class="nt">'+esc(r.note)+'</span>':'')+(digits(r.phone)?tel(r.phone):'')+'</div>';}).join('')+'</div></div>';}).join('');
+   if(!blocks)return '';return '<section class="rl-area"><h3>'+esc(a.label)+'</h3><div class="s">'+esc(a.sub||'')+'</div>'+blocks+'</section>';}).join('')+'</div>';
+ h+='<div class="scroll-x rg-wrap"><table class="rg"><thead><tr><th>Location</th>'+shifts.map(function(s){return '<th><span class="mono">'+esc(s)+'</span></th>';}).join('')+'</tr></thead><tbody>'+
+ rows.map(function(a){var any=false;var cells=shifts.map(function(s){var ppl=es.filter(function(r){return fmtShift(r.shift)===s&&(r.areas||[]).indexOf(a.key)>=0;});if(ppl.length)any=true;
+   return '<td><div class="rc">'+ppl.map(function(r){var shared=(r.areas||[]).length>1;return '<div class="rp" '+(editing?'role="button" tabindex="0" data-act="roster-edit" data-id="'+r.id+'"':'')+'><span class="top-l"><span class="team '+esc(r.team)+'">'+esc(r.team)+'</span>'+esc(r.name)+'</span>'+(r.note||shared?'<span class="nt">'+esc([r.note,shared?'Also '+r.areas.filter(function(k){return k!==a.key;}).map(areaLabel).join(', '):''].filter(Boolean).join(' · '))+'</span>':'')+(digits(r.phone)?tel(r.phone):'')+'</div>';}).join('')+'</div></td>';}).join('');
+   if(!any&&a.key==='all')return '';return '<tr><th>'+esc(a.label)+'<small>'+esc(a.sub||'')+'</small></th>'+cells+'</tr>';}).join('')+'</tbody></table></div>';
+ h+='<p class="muted" style="margin:0;font-size:12.5px">Numbers on the roster are matched from the key contact lists. People without a number weren’t listed with one in the pack.</p>';
+ return h;};
+
+V.dates=function(){var list=S.dates.slice().sort(sortDates);var t=todayISO();
+ return phead('Key dates','Go Live Command & Control (OR) meetings and closure milestones.','<button class="btn edit-only" data-act="date-add">'+ic('plus')+' Add date</button>')+
+ '<div class="tl">'+(list.length?list.map(function(e){var d=pDate(e.date),cls=e.date<t?' past':e.date===t?' today':'';
+  return '<article class="ev'+cls+'"><div class="d"><span>'+(d?DOW[d.getDay()]:'')+'</span><b>'+(d?d.getDate():'?')+'</b><span>'+(d?MON[d.getMonth()]+' '+String(d.getFullYear()).slice(2):'')+'</span></div><div style="min-width:0"><h4>'+esc(e.title)+'</h4><div class="meta"><span class="type '+esc(e.type)+'">'+esc(e.type)+'</span>'+(e.time?'<span class="mono">'+esc(fmtShift(e.time))+'</span>':'<span>All day</span>')+(e.format?'<span>'+esc(e.format)+'</span>':'')+'</div>'+(e.attendees?'<div class="att"><span class="muted">Attendees:</span> '+esc(e.attendees)+'</div>':'')+(e.detail?'<div class="att">'+esc(e.detail)+'</div>':'')+'</div>'+editBtn('date-edit',e.id,'Edit date')+'</article>';}).join(''):'<div class="empty-note">No key dates yet.</div>')+'</div>';};
+
+V.journeys=function(){var secs=['Departing','Arriving','Passenger support'];var sub={'Departing':'From 23 June 2026, these changes support the closure of the Terminal 4 multi-storey car park.','Arriving':'From 23 June 2026, these changes support the closure of the multi-storey car park.','Passenger support':'Signage, information and people on the ground.'};
+ var h=phead('Airport journeys','What changes for departing and arriving passengers, and how they’re supported.','<button class="btn edit-only" data-act="journey-add">'+ic('plus')+' Add card</button>'+(S.project.videoUrl?'<a class="btn" href="'+esc(S.project.videoUrl)+'" target="_blank" rel="noopener">'+ic('link')+' T4 car park changes video</a>':''));
+ secs.forEach(function(s){var cards=S.journeys.filter(function(j){return j.section===s;});if(!cards.length&&!editing)return;
+  h+='<section class="sec"><h3>'+esc(s==='Passenger support'?s:'Changes: '+s.toLowerCase()+' passengers')+'</h3><p class="muted" style="margin:-6px 0 0">'+esc(sub[s])+'</p><div class="jcards">'+cards.map(function(j){
+   var extra='';if(j.charges)extra+='<div class="eyebrow">Charges</div><div class="charges">'+S.charges.map(function(c){return '<div class="chg"><b>'+esc(c.price)+'</b><span>'+esc(c.label)+'</span></div>';}).join('')+'</div><button class="btn sm edit-only" data-act="charges-edit">'+ic('edit')+' Edit charges</button>';
+   if(j.signs)extra+='<div class="row" style="align-items:flex-start;gap:14px"><div class="signs" aria-label="Wayfinding sign">'+S.signs.map(function(g){return '<div class="sg '+esc(g.tone)+'"><span class="a" aria-hidden="true">'+esc(g.arrow)+'</span><span>'+esc(g.text)+(g.sub?'<small>'+esc(g.sub)+'</small>':'')+'</span></div>';}).join('')+'</div>'+(S.vms?'<div class="vms" aria-label="Variable message sign">'+esc(S.vms)+'</div>':'')+'</div><button class="btn sm edit-only" data-act="signs-edit">'+ic('edit')+' Edit signage</button>';
+   return '<article class="jc"><div class="jc-h"><span>'+esc(j.title)+'</span>'+editBtn('journey-edit',j.id,'Edit card')+'</div><div class="jc-b">'+lines(j.body).replace(/heathrow\.com/g,'<a href="https://www.heathrow.com" target="_blank" rel="noopener">heathrow.com</a>')+(j.highlight?'<div class="hl">'+ic('clock')+esc(j.highlight)+'</div>':'')+extra+'</div></article>';}).join('')+'</div></section>';});
+ return h;};
+
+V.data=function(){var F=S.forecast;if(!F.days[ui.fDay])ui.fDay=0;var d=F.days[ui.fDay];
+ var h=phead('Forecast & data','T4 passenger forecasts for the closure days and the surface access profile.','');
+ h+='<section class="sec"><h3>Passenger forecast<span class="spacer"></span><button class="btn sm edit-only" data-act="fc-edit">'+ic('edit')+' Edit '+esc(d?d.label:'')+'</button><button class="btn sm edit-only" data-act="fc-add">'+ic('plus')+' Add day</button></h3><div class="chips">'+F.days.map(function(x,i){return '<button class="chip" data-act="fday" data-v="'+i+'" aria-pressed="'+(i===ui.fDay)+'">'+esc(x.label)+'</button>';}).join('')+'</div>';
+ if(d){h+='<div class="grid2">'+chartCard('Immigration','Hourly local arriving passengers at the immigration hall',d.immigration,F)+chartCard('Check-in','Hourly direct passengers at check-in',d.checkin,F)+'</div>';}
+ h+='<div class="keyrow"><span><span class="sw" style="background:var(--ok)"></span>Under '+F.amber.toLocaleString()+'/hr</span><span><span class="sw" style="background:var(--warn)"></span>'+F.amber.toLocaleString()+'–'+(F.red-1).toLocaleString()+'/hr</span><span><span class="sw" style="background:var(--crit)"></span>'+F.red.toLocaleString()+'+/hr</span><span>'+esc(F.note||'')+'</span></div></section>';
+ var A=S.surface;
+ h+='<section class="sec"><h3>Terminal 4 surface access profile<span class="spacer"></span><button class="btn sm edit-only" data-act="sa-edit">'+ic('edit')+' Edit table</button></h3><div class="tiles">'+A.tiles.map(function(t){return '<div class="tile"><b>'+esc(t.value)+'</b><span>'+esc(t.label)+(t.verify?' <span class="verify">check</span>':'')+'</span></div>';}).join('')+'</div>';
+ var mi=ui.saMonth==null||ui.saMonth>=A.months.length?A.months.length-1:ui.saMonth;
+ var mrows=A.rows.map(function(r){return{r:r,v:r.vals[mi]};}).sort(function(a,b){return (b.v||0)-(a.v||0);});var mmax=Math.max.apply(null,mrows.map(function(x){return x.v||0;}))||1;
+ h+='<div class="card sa-m"><label class="fld"><span class="lab">Month</span><select id="samonth">'+A.months.map(function(m,i){return '<option value="'+i+'"'+(i===mi?' selected':'')+'>'+esc(m)+'</option>';}).join('')+'</select></label>'+
+  mrows.map(function(x){return '<div class="mrow"><span class="mn">'+esc(x.r.mode)+(x.r.verify?' <span class="verify">check</span>':'')+'</span><span class="mv">'+(x.v==null?'–':x.v.toFixed(1)+'%')+'</span><span class="mb"><i style="width:'+((x.v||0)/mmax*100).toFixed(1)+'%"></i></span></div>';}).join('')+'</div>';
+ h+='<div class="scroll-x sa-wrap"><table class="sa"><thead><tr><th>Mode of transport</th>'+A.months.map(function(m){return '<th>'+esc(m)+'</th>';}).join('')+'</tr></thead><tbody>'+A.rows.map(function(r){return '<tr><td>'+esc(r.mode)+(r.verify?' <span class="verify">check</span>':'')+'</td>'+r.vals.map(function(v){return '<td class="v"'+(v!=null?' style="background:color-mix(in srgb,var(--accent) '+Math.min(55,Math.round(v*1.8))+'%,transparent)'+(v>=20?';font-weight:600':'')+'"':'')+'>'+(v==null?'<span class="muted">–</span>':v.toFixed(1)+'%')+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div><p class="muted" style="margin:0;font-size:12.5px">Shading shows share of passengers by mode. Rows marked “check” were hard to read in the source and need confirming.</p></section>';
+ return h;};
+function chartCard(title,sub,series,F){var vals=series.values||[],st=series.start||0;if(!vals.length)return '<div class="card"><h4>'+esc(title)+'</h4><div class="empty-note">No values yet.</div></div>';
+ var max=Math.max.apply(null,vals),pk=vals.indexOf(max),tot=vals.reduce(function(a,b){return a+b;},0);
+ var W=640,H=250,L=40,R=8,T=22,B=26,cw=W-L-R,ch=H-T-B,ym=Math.ceil(max/500)*500||500,bw=cw/vals.length;
+ var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(title)+' passengers per hour">';
+ for(var g=0;g<=ym;g+=500){var y=T+ch-ch*g/ym;s+='<line class="grid" x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end">'+(g/1000).toFixed(1)+'k</text>';}
+ vals.forEach(function(v,i){var bh=ch*v/ym,x=L+i*bw+2,y=T+ch-bh,col=v>=F.red?'var(--crit)':v>=F.amber?'var(--warn)':'var(--ok)';
+  s+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+(bw-4).toFixed(1)+'" height="'+Math.max(bh,1).toFixed(1)+'" rx="2" fill="'+col+'"><title>'+hm((st+i)*60)+' · '+v.toLocaleString()+' pax</title></rect>';
+  if(bw>=26||i===pk)s+='<text class="vl'+(i===pk?' peak':'')+'" x="'+(x+(bw-4)/2).toFixed(1)+'" y="'+(y-4).toFixed(1)+'" text-anchor="middle">'+v.toLocaleString()+'</text>';
+  if((st+i)%3===0)s+='<text x="'+(x+(bw-4)/2).toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle">'+String((st+i)%24).padStart(2,'0')+':00</text>';});
+ s+='</svg>';
+ return '<div class="card sec"><div><h4 style="font-size:15px">'+esc(title)+'</h4><div class="muted" style="font-size:12.5px">'+esc(sub)+'</div></div><div class="stats"><div class="stat"><b>'+max.toLocaleString()+'</b><span>Peak · '+hm((st+pk)*60)+'</span></div><div class="stat"><b>'+tot.toLocaleString()+'</b><span>Total, '+hm(st*60)+'–'+hm((st+vals.length)*60)+'</span></div><div class="stat"><b>'+vals.filter(function(v){return v>=F.red;}).length+'</b><span>Red hours</span></div></div>'+s+'</div>';}
+
+V.maps=function(){var cats=['All'];S.images.forEach(function(i){if(i.category&&cats.indexOf(i.category)<0)cats.push(i.category);});if(cats.indexOf(ui.imgCat)<0)ui.imgCat='All';
+ var list=S.images.filter(function(i){return ui.imgCat==='All'||i.category===ui.imgCat;});
+ return phead('Maps & images','Tap an image to view it full screen and zoom. Replace, rename or add images here; press Save to keep changes.','<button class="btn primary" data-act="img-add">'+ic('plus')+' Add images</button>')+
+ '<div class="chips scroll">'+cats.map(function(c){return '<button class="chip" data-act="imgcat" data-v="'+esc(c)+'" aria-pressed="'+(ui.imgCat===c)+'">'+esc(c)+'</button>';}).join('')+'</div>'+
+ '<div class="imgs">'+list.map(function(im){var i=S.images.indexOf(im);return '<article class="im"><button class="th" data-act="img-open" data-id="'+im.id+'" aria-label="View '+esc(im.title)+'"><img src="'+im.src+'" alt="'+esc(im.title)+'" loading="lazy"></button><div class="b"><h4>'+esc(im.title)+'</h4>'+(im.caption?'<p>'+esc(im.caption)+'</p>':'')+'<div class="acts"><span class="pill">'+esc(im.category||'Other')+'</span><span class="spacer"></span><button class="btn sm" data-act="img-replace" data-id="'+im.id+'">'+ic('swap')+' Replace</button><button class="iconbtn" data-act="img-edit" data-id="'+im.id+'" aria-label="Edit details">'+ic('edit')+'</button>'+(i>0?'<button class="iconbtn" data-act="img-up" data-id="'+im.id+'" aria-label="Move earlier">'+ic('up')+'</button>':'')+'</div></div></article>';}).join('')+'</div>'+
+ '<div class="drop" id="drop">'+ic('image')+'<span>Drop images here, paste from your clipboard, or</span><button class="btn sm" data-act="img-add">Choose files</button></div>';};
+
+V.partners=function(){return phead('Delivery partners','Partner infographics and the numbers that belong to each partner.','<button class="btn edit-only" data-act="partner-add">'+ic('plus')+' Add partner</button>')+
+ '<div class="grid3">'+S.partners.map(function(p){var mt=(p.match||p.name||'').toLowerCase();var rel=mt?S.contacts.filter(function(c){return digits(c.phone)&&((c.role||'')+' '+(c.dept||'')).toLowerCase().indexOf(mt)>=0;}):[];var seen={};rel=rel.filter(function(c){var k=c.role+c.phone;if(seen[k])return false;seen[k]=1;return true;});
+  return '<article class="pt"><h3>'+esc(p.name)+editBtn('partner-edit',p.id,'Edit partner')+'</h3>'+(p.desc?'<p class="muted" style="margin:0;font-size:13.5px">'+esc(p.desc)+'</p>':'')+
+  (p.url?'<a class="lnk" href="'+esc(p.url)+'" target="_blank" rel="noopener">'+ic('link')+esc(p.name)+' infographic</a>':'<span class="lnk missing">'+ic('link')+'Link to add</span>')+
+  (rel.length?'<ul>'+rel.map(function(c){return '<li><span>'+esc(c.name||c.role)+'</span>'+tel(c.phone)+'</li>';}).join('')+'</ul>':'')+'</article>';}).join('')+'</div>';};
+
+/* ---------- events ---------- */
+function byId(arr,id){return (arr||[]).find(function(x){return x.id===id;});}
+document.addEventListener('click',function(e){var t=e.target.closest('[data-act]');if(!t)return;var a=t.getAttribute('data-act'),v=t.getAttribute('data-v'),id=t.getAttribute('data-id');
+ switch(a){
+ case 'nav':e.preventDefault();closeSheet();go(v);break;
+ case 'edit-toggle':editing=!editing;render();toast(editing?'Edit mode on. Tap the pencil on anything to change it.':'Edit mode off.'+(dirty?' Remember to Save.':''));break;
+ case 'save':save();break;
+ case 'pinfo-add':pinfoForm();break;
+ case 'pinfo-edit':pinfoForm(byId(S.projectInfo,id));break;
+ case 'feedback':feedback();break;
+ case 'copy':copyText(v);break;
+ case 'mclose':closeForm();break;
+ case 'mdel':if(t.dataset.confirm){FORM.onDelete();closeForm();markDirty();render();toast('Deleted. Press Save to publish.');}else{t.dataset.confirm='1';t.querySelector('span').textContent='Confirm delete';}break;
+ case 'proj-edit':projectForm();break;
+ case 'notice-add':noticeForm();break;
+ case 'notice-edit':noticeForm(byId(S.notices,id));break;
+ case 'todo-add':todoForm();break;
+ case 'todo-edit':todoForm(byId(S.todo,id));break;
+ case 'todo-tick':var td=byId(S.todo,id);if(td){td.done=t.checked;markDirty();render();}break;
+ case 'cgroup':ui.cGroup=v;saveUi();render();break;
+ case 'conow':ui.cOnNow=!ui.cOnNow;saveUi();render();break;
+ case 'contact-add':contactForm();break;
+ case 'contact-edit':contactForm(byId(S.contacts,id));break;
+ case 'wnow':ui.wTime=null;render();break;
+ case 'rday':ui.rDay=v;saveUi();render();break;
+ case 'rday-add':dayForm();break;
+ case 'rday-edit':dayForm(byId(S.rosterDays,id));break;
+ case 'roster-add':rosterForm(null,ui.rDay);break;
+ case 'roster-edit':if(editing)rosterForm(byId(S.roster,id));break;
+ case 'date-add':dateForm();break;
+ case 'date-edit':dateForm(byId(S.dates,id));break;
+ case 'journey-add':journeyForm();break;
+ case 'journey-edit':journeyForm(byId(S.journeys,id));break;
+ case 'charges-edit':chargesForm();break;
+ case 'signs-edit':signsForm();break;
+ case 'fday':ui.fDay=+v;saveUi();render();break;
+ case 'fc-edit':forecastForm(ui.fDay);break;
+ case 'fc-add':var last=S.forecast.days[S.forecast.days.length-1];S.forecast.days.push({label:'New day',date:'',immigration:{start:last?last.immigration.start:6,values:[]},checkin:{start:last?last.checkin.start:4,values:[]}});ui.fDay=S.forecast.days.length-1;forecastForm(ui.fDay);break;
+ case 'sa-edit':surfaceForm();break;
+ case 'imgcat':ui.imgCat=v;saveUi();render();break;
+ case 'img-add':pickFile(null);break;
+ case 'img-replace':pickFile(byId(S.images,id));break;
+ case 'img-edit':imageForm(byId(S.images,id));break;
+ case 'img-up':var ix=S.images.findIndex(function(x){return x.id===id;});if(ix>0){var tmp=S.images[ix-1];S.images[ix-1]=S.images[ix];S.images[ix]=tmp;markDirty();render();}break;
+ case 'img-open':openLB(byId(S.images,id));break;
+ case 'lbz':var n=+v;zoomLB(n===0?1:LB.z*(n>0?1.5:1/1.5));break;
+ case 'more':openSheet();break;
+ case 'sheet-close':closeSheet();break;
+ case 'lbclose':fadeRemove(document.getElementById('lb'),190);break;
+ case 'partner-add':partnerForm();break;
+ case 'partner-edit':partnerForm(byId(S.partners,id));break;
+ case 'draft-restore':S=pendingDraft.data;ensureIds();pendingDraft=null;dirty=true;render();toast('Restored. Press Save to publish them.');break;
+ case 'draft-discard':pendingDraft=null;try{localStorage.removeItem('tsp-draft');}catch(err){}render();break;
+ }});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('sheet'))closeSheet();else if(document.getElementById('lb'))fadeRemove(document.getElementById('lb'),190);else closeForm();}
+ if((e.key==='Enter'||e.key===' ')&&e.target.matches('[role=button][data-act]')){e.preventDefault();e.target.click();}});
+document.addEventListener('input',function(e){if(e.target.id==='csearch'){ui.cQuery=e.target.value;document.getElementById('clist').innerHTML=contactList();}});
+document.addEventListener('change',function(e){if(e.target.id==='samonth'){ui.saMonth=+e.target.value;render();}if(e.target.id==='wday'){ui.wDay=e.target.value;render();}if(e.target.id==='wtime'){var m=toMin(e.target.value);if(m!=null){ui.wTime=m;render();}}});
+document.addEventListener('dragover',function(e){var d=document.getElementById('drop');if(d&&ui.view==='maps'){e.preventDefault();d.classList.add('over');}});
+document.addEventListener('dragleave',function(e){var d=document.getElementById('drop');if(d&&e.target===d)d.classList.remove('over');});
+document.addEventListener('drop',function(e){if(ui.view!=='maps')return;e.preventDefault();var d=document.getElementById('drop');if(d)d.classList.remove('over');if(e.dataTransfer&&e.dataTransfer.files.length)addFiles(e.dataTransfer.files);});
+document.addEventListener('paste',function(e){if(ui.view!=='maps'||document.getElementById('modal'))return;var fs=[].slice.call((e.clipboardData&&e.clipboardData.files)||[]);if(fs.length){e.preventDefault();addFiles(fs);}});
+window.addEventListener('resize',function(){if(document.getElementById('lb'))sizeLB();});
+window.addEventListener('beforeunload',function(e){if(dirty&&ART&&canPublish){e.preventDefault();e.returnValue='';}});
+function copyText(s){function fb(){toast('Number: '+s);}try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(s).then(function(){toast('Copied '+s);},fb);}else fb();}catch(err){fb();}}
+var VALID=VIEWS.map(function(v){return v[0];});
+function go(v){if(VALID.indexOf(v)<0)v='overview';ui.view=v;if(location.hash!=='#'+v){try{history.replaceState(null,'','#'+v);}catch(e){location.hash=v;}}render();window.scrollTo(0,0);}
+window.addEventListener('hashchange',function(){var h=location.hash.slice(1);if(h&&h!==ui.view&&VALID.indexOf(h)>=0){ui.view=h;render();}});
+(function init(){var h=location.hash.slice(1);if(VALID.indexOf(h)>=0)ui.view=h;render();useClaude();})();
+})();
+</script>
+<script>if('serviceWorker' in navigator&&location.protocol==='https:'){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}</script></body></html>
